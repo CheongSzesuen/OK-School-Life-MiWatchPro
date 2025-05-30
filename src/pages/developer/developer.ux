@@ -1,76 +1,174 @@
 <template>
     <div class="developer">
-      <div class="author-section">
-        <text class="author-name">{{ authorName }}</text>
+      <!-- 顶部标题 -->
+      <div class="header">
+        <text class="title">开发团队</text>
       </div>
-  
-      <div class="contributors-section">
-        <div class="contributor-row" for="row in contributors">
-          <text class="contributor-name" for="name in row">{{ name }}</text>
+      
+      <!-- 作者信息 -->
+      <div class="author-section">
+        <text class="section-title">主要开发者</text>
+        <div class="author-container">
+          <div class="author-card" for="author in authors">
+            <text class="author-name">{{ author }}</text>
+          </div>
         </div>
+      </div>
+      
+      <!-- 贡献者信息 -->
+      <div class="contributors-section">
+        <text class="section-title">贡献者名单</text>
+        <div class="contributors-grid">
+          <div class="contributor-card" for="contributor in contributors">
+            <text class="contributor-name">{{ contributor }}</text>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 底部加载提示 -->
+      <div class="footer">
+        <text class="loading-text">即将进入游戏...</text>
       </div>
     </div>
   </template>
   
   <script>
+  import router from "@system.router"
+  
   export default {
-    private: {
-      authorName: "StillAlive & WaiJade",
-      contributors: [
-        ["Tomato1", "Tomato2"],
-        ["Tomato3", "Tomato4"]
-      ]
+ //   onInit() {
+      // 页面初始化时启动定时器
+ //     setTimeout(() => {
+  //      router.replace({
+  //        uri: 'pages/welcome' 
+  //      })
+  //    }, 5000)
+      
+      console.info("developer页面初始化开始");
+      console.info("作者:", this.authors);
+      console.info("贡献者:", this.contributors);
+      console.info("developer页面初始化完成");
     },
-    onInit() {
-  console.info("developer页面初始化开始");
-  console.info("作者:", this.authorName);
-  console.info("贡献者:", JSON.stringify(this.contributors));
-  console.info("developer页面初始化完成");
-  this.contributors = this.contributors || [];
-  setTimeout(() => {
-      router.replace({
-        uri: 'pages/main' 
-      })
-    }, 5000)
-}
+    
+    private: {
+      authors: ["StillAlive", "WaiJade"],
+      contributors: [
+        "lagency", "智心逍遥", "sky", 
+        "GuoHao", "YaXuan", "其他贡献者"
+      ]
+    }
   }
   </script>
   
   <style>
+  /* 全局样式 */
   .developer {
     flex-direction: column;
     width: 100%;
     height: 100%;
-    padding: 20px;
+    padding: 30px;
+    background-color: #000000; /* 黑色背景 */
   }
   
-  .author-section {
+  /* 头部样式 */
+  .header {
     width: 100%;
     justify-content: center;
+    margin-bottom: 40px;
+  }
+  
+  .title {
+    font-size: 42px;
+    font-weight: bold;
+    color: #ffffff; /* 白色字体 */
+    text-align: center;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  
+  /* 通用卡片样式 */
+  .author-card, .contributor-card {
+    background-color: #1a1a1a;
+    border-radius: 15px;
+    border: 2px solid #333333; /* 边框 */
+    padding: 20px;
+    margin: 10px;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 30px;
+    min-width: 200px;
+    min-height: 80px;
+  }
+  
+  /* 作者区域 */
+  .author-section {
+    width: 100%;
+    margin-bottom: 40px;
+  }
+  
+  .section-title {
+    font-size: 32px;
+    color: #ffffff;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+  }
+  
+  .author-container {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
   }
   
   .author-name {
-    font-size: 30px;
+    font-size: 28px;
+    color: #4a90e2; /* 作者名字特殊颜色 */
     font-weight: bold;
-    color: #000000;
+    text-align: center;
   }
   
+  /* 贡献者区域 */
   .contributors-section {
     width: 100%;
-    flex-direction: column;
+    flex: 1;
   }
   
-  .contributor-row {
-    width: 100%;
-    justify-content: center; 
-    margin-bottom: 15px;
+  .contributors-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .contributor-card {
+    width: 30%; /* 每行三个 */
+    min-height: 100px;
   }
   
   .contributor-name {
-    font-size: 20px;
-    color: #555555;
-    margin: 0 10px; 
+    font-size: 26px;
+    color: #ffffff;
+    text-align: center;
+  }
+  
+  /* 底部样式 */
+  .footer {
+    width: 100%;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  
+  .loading-text {
+    font-size: 24px;
+    color: #aaaaaa;
+    animation: blink 1.5s infinite;
+  }
+  
+  /* 闪烁动画 */
+  @keyframes blink {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 1;
+    }
   }
   </style>
