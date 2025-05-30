@@ -1,11 +1,9 @@
 <template>
     <div class="developer">
-      <!-- 作者名字（顶部居中，较大字体） -->
       <div class="author-section">
         <text class="author-name">{{ authorName }}</text>
       </div>
   
-      <!-- 贡献者列表（2-3 列，较小字体） -->
       <div class="contributors-section">
         <div class="contributor-row" for="row in contributors">
           <text class="contributor-name" for="name in row">{{ name }}</text>
@@ -46,7 +44,6 @@
     padding: 20px;
   }
   
-  /* 作者部分（顶部，大字体） */
   .author-section {
     width: 100%;
     justify-content: center;
@@ -60,7 +57,6 @@
     color: #000000;
   }
   
-  /* 贡献者部分（多列布局） */
   .contributors-section {
     width: 100%;
     flex-direction: column;
@@ -75,6 +71,6 @@
   .contributor-name {
     font-size: 20px;
     color: #555555;
-    margin: 0 10px; /* 添加间距 */
+    margin: 0 10px; 
   }
   </style>

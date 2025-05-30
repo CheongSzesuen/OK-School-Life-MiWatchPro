@@ -1,0 +1,92 @@
+<!-- src/pages/welcome/welcome.ux -->
+<template>
+    <div class="container">
+      <text class="title">OK School Life</text>
+      <text class="version">beta {{version}}</text>
+      
+      <div class="btn" onclick="startGame">
+        <text>开始游戏</text>
+      </div>
+      
+      <div class="btn" onclick="showAchievements">
+        <text>查看成就</text>
+      </div>
+      
+      <div class="btn" onclick="exitGame">
+        <text>退出游戏</text>
+      </div>
+    </div>
+  </template>
+  
+  <style>
+    .container {
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+    }
+    
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 15px;
+    }
+    
+    .title {
+      font-size: 22px;
+      color: #333;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    
+    .version {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    
+    .btn {
+      width: 180px;
+      height: 45px;
+      margin-top: 12px;
+      border-radius: 22px;
+      background-color: #4a90e2;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .btn text {
+      color: white;
+      font-size: 16px;
+    }
+  </style>
+  
+  <script>
+    import router from '@system.router'
+    
+    export default {
+      private: {
+        version: 'v0.3.10'
+      },
+      
+      startGame() {
+        router.push({
+          uri: '/main',
+          params: { newGame: true }
+        })
+      },
+      
+      showAchievements() {
+        router.push({
+          uri: '/main',
+          params: { showAchievements: true }
+        })
+      },
+      
+      exitGame() {
+        router.clear()
+      }
+    }
+  </script>

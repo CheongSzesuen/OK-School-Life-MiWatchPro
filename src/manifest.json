@@ -1,7 +1,7 @@
 {
   "package": "com.application.watch.demo",
   "name": "OkSchoolLife",
-  "versionName": "1.0.0",
+  "versionName": "0.0.1-45",
   "versionCode": 1,
   "minPlatformVersion": 1000,
   "icon": "/common/logo.png",
@@ -27,12 +27,14 @@
       "pages/developer": {
       "component": "developer"
     },
+    "pages/welcome": {
+      "component": "welcome"
+    },
     "pages/main": {
       "component": "main"
-    },
-    "pages/achievement": {
-      "component": "achievement"
     }
+    
+    
     }
   }
 }
