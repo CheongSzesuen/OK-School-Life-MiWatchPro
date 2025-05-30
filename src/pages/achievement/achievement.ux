@@ -1,0 +1,314 @@
+<template>
+  <div class="achievement-page">
+    <!-- 顶部导航栏 -->
+    <div class="header">
+      <div class="back-btn" 
+           :class="{'btn-active': activeBtnIndex === 0}" 
+           @click="backToWelcome"
+           @touchstart="setBtnActive(0)"
+           @touchend="setBtnInactive">
+        <text class="back-icon">←</text>
+      </div>
+      <text class="title">成就</text>
+    </div>
+    
+    <!-- 内容区域 -->
+    <div class="content">
+      <div class="achievements-section" if="{{achievements.length > 0}}">
+        <div class="achievements-list">
+          <div class="achievement-item" for="(achievement, index) in achievements">
+            <div class="achievement-content">
+              <div class="text-container">
+                <text class="achievement-text">{{achievement}}</text>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="empty-state" if="{{achievements.length === 0}}">
+        <text class="empty-text">暂无成就</text>
+      </div>
+    </div>
+    
+    <!-- 底部按钮 -->
+    <div class="footer">
+      <div class="btn clear-btn" 
+           :class="{'btn-active': activeBtnIndex === 1}" 
+           @click="clearAchievements"
+           @touchstart="setBtnActive(1)"
+           @touchend="setBtnInactive">
+        <text class="btn-text">清空成就</text>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import prompt from '@system.prompt'
+
+export default {
+  private: {
+    achievements: [
+      "新生入学 - 完成新手引导",
+      "第一堂课 - 完成第一节课",
+      "校园探索者 - 探索所有校园场景",
+      "优秀学生 - 连续7天登录",
+      "全勤奖 - 一个月内无缺席"
+    ],
+    activeBtnIndex: -1
+  },
+  
+  clearAchievements() {
+    prompt.showDialog({
+      title: '确认清空',
+      message: '确定要清空所有成就吗？',
+      buttons: [
+        { text: '取消' },
+        { text: '确定', color: '#FF3B30' }
+      ],
+      success: (res) => {
+        if (res.index === 1) {
+          this.achievements = []
+          prompt.showToast({ message: '成就已清空' })
+        }
+      }
+    })
+  },
+  
+  backToWelcome() {
+    router.replace({
+      uri: 'pages/welcome'
+    })
+  },
+  
+  setBtnActive(index) {
+    this.activeBtnIndex = index
+  },
+  
+  setBtnInactive() {
+    this.activeBtnIndex = -1
+  }
+}
+</script>
+
+<style>
+  .achievement-page {
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    background-color: #0f0f15;
+    padding: 15px;
+  }
+
+  .header {
+    width: 100%;
+    height: 70px;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 15px;
+    position: relative;
+  }
+
+  .back-btn {
+    position: absolute;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 8px;
+    transition: background-color 0.1s;
+  }
+
+  .back-btn.btn-active {
+    background-color: rgba(65, 184, 118, 0.2);
+  }
+
+  .back-icon {
+    font-size: 40px;
+    color: #41b876;
+  }
+
+  .title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #41b876;
+    text-align: center;
+    width: 100%;
+  }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    width: 100%;
+  }
+
+  .achievements-section {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .achievements-list {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .achievement-item {
+    width: 100%;
+    padding: 20px 15px;
+    border-bottom-width: 1px;
+    border-bottom-color: #252530;
+  }
+
+  .achievement-content {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .text-container {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .achievement-text {
+    font-size: 26px;
+    color: #E0E0E0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .empty-state {
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 40px 0;
+  }
+
+  .empty-icon {
+    font-size: 50px;
+    margin-bottom: 20px;
+    color: #555566;
+  }
+
+  .empty-text {
+    font-size: 28px;
+    color: #888899;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    padding: 0 20px;
+    align-items: center;
+  }
+
+  .clear-btn {
+    width: 100%;
+    height: 60px;
+    background-color: #2A2A3A;
+    border-radius: 8px;
+    border: 1px solid #3A3A4A;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.1s;
+  }
+
+  .clear-btn.btn-active {
+    background-color: #3A3A4A;
+  }
+
+  .btn-text {
+    font-size: 28px;
+    color: #FF5555;
+    font-weight: bold;
+  }
+</style>
+  
+  setBtnInactive() {
+    this.activeBtnIndex = -1
+  }
+}
+</script>
+
+<style>
+.container {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  padding: 20px 10px;
+}
+
+.logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 20px;
+  margin-top: 20px;
+}
+
+.header {
+  flex-direction: column;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.title {
+  font-size: 32px;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.version {
+  font-size: 18px;
+  color: #aaaaaa;
+  text-align: center;
+}
+
+.buttons {
+  flex-direction: column;
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: 30px;
+}
+
+.btn {
+  width: 100%;
+  height: 60px;
+  margin-top: 20px;
+  border-radius: 20px;
+  background-color: #41b876;
+  justify-content: center;
+  align-items: center;
+}
+
+.btn-text {
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.btn-active {
+  background-color: #41b876;
+}
+
+.footer {
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+}
+
+.hint {
+  font-size: 16px;
+  color: #666666;
+  text-align: center;
+}
+</style>

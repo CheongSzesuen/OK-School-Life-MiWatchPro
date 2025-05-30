@@ -1,30 +1,32 @@
 <template>
   <div class="WelcomePage">
     <image class="icon" src="../../common/assets/icon-v4.png"></image>
-    <text class="GameName">{{ GameName }}</text>
+    
+    <!-- 游戏名称容器 -->
+    <div class="game-name-container">
+      <text class="GameName">{{ GameName }}</text>
+    </div>
+    
     <text class="loading-text">加载中...</text>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
-import configuration from "@system.configuration"
 
 export default {
   onInit() {
     // 页面初始化时启动定时器
     setTimeout(() => {
       router.replace({
-        uri: 'pages/developer' 
+        uri: 'pages/welcome' 
       })
-    }, 5000)
+    }, 2500)  // 缩短等待时间至2.5秒
   },
 
-  // 页面级组件的数据模型
   private: {
-    title: "开发者和贡献者页面",
-    GameName: "Ok School Life"
-  },
+    GameName: "Ok School Life"  // 简化变量名
+  }
 }
 </script>
 
@@ -36,44 +38,48 @@ export default {
   align-items: center;
   width: 100%;
   height: 100%;
-  background-color: #000000; /* 黑色背景 */
-  padding: 40px; /* 添加内边距 */
+  background-color: #000000;
+  padding: 20px;
 }
 
 /* 图标样式 */
 .icon {
-  width: 200px;
+  width: 200px; /* 适当缩小图标 */
   height: 200px;
-  border-radius: 30px; /* 圆角效果 */
-  margin-bottom: 60px; /* 增加下边距 */
+  border-radius: 30px; 
+  margin-bottom: 40px; 
+}
+
+/* 游戏名称容器 - 确保名称不会超出屏幕 */
+.game-name-container {
+  max-width: 100%; /* 不超过父容器宽度 */
+  padding: 0 15px; /* 添加内边距防止边缘截断 */
+  margin-top: 20px;
+  margin-bottom: 40px;
 }
 
 /* 游戏名称样式 */
 .GameName {
-  font-size: 42px;
+  font-size: 38px; /* 适当减小字体大小 */
   text-align: center;
-  color: #ffffff; /* 白色字体 */
+  color: #ffffff; 
   font-weight: bold;
-  letter-spacing: 2px;
-  margin-top: 20px; /* 增加上边距 */
-  margin-bottom: 40px; /* 增加下边距 */
+  letter-spacing: 1px; /* 减小字间距 */
+  /* 确保文本自动换行 */
+  word-wrap: break-word;
+  white-space: normal;
 }
 
-/* 加载提示 */
 .loading-text {
   font-size: 24px;
   color: #aaaaaa;
   animation: blink 1.5s infinite;
-  margin-top: 30px; /* 增加上边距 */
+  margin-top: 30px;
 }
 
-/* 仅保留简单的闪烁动画 */
+/* 闪烁动画 */
 @keyframes blink {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 </style>

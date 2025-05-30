@@ -1,174 +1,138 @@
 <template>
-    <div class="developer">
-      <!-- 顶部标题 -->
-      <div class="header">
-        <text class="title">开发团队</text>
-      </div>
-      
-      <!-- 作者信息 -->
-      <div class="author-section">
-        <text class="section-title">主要开发者</text>
-        <div class="author-container">
-          <div class="author-card" for="author in authors">
-            <text class="author-name">{{ author }}</text>
-          </div>
+  <div class="container">
+    <!-- 作者区域 -->
+    <div class="section">
+      <text class="section-title">作者</text>
+      <div class="author-container">
+        <div class="author-card">
+          <text class="author-name">StillAlive</text>
         </div>
-      </div>
-      
-      <!-- 贡献者信息 -->
-      <div class="contributors-section">
-        <text class="section-title">贡献者名单</text>
-        <div class="contributors-grid">
-          <div class="contributor-card" for="contributor in contributors">
-            <text class="contributor-name">{{ contributor }}</text>
-          </div>
+        <div class="author-card">
+          <text class="author-name">WaiJade</text>
         </div>
-      </div>
-      
-      <!-- 底部加载提示 -->
-      <div class="footer">
-        <text class="loading-text">即将进入游戏...</text>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import router from "@system.router"
-  
-  export default {
-    onInit() {
-      // 页面初始化时启动定时器
-      setTimeout(() => {
-        router.replace({
-          uri: 'pages/welcome' 
-        })
-   }, 5000)
-      
-      console.info("developer页面初始化开始");
-      console.info("作者:", this.authors);
-      console.info("贡献者:", this.contributors);
-      console.info("developer页面初始化完成");
-    },
     
-    private: {
-      authors: ["StillAlive", "WaiJade"],
-      contributors: [
-        "lagency", "智心逍遥", "sky", 
-        "GuoHao", "YaXuan", "其他贡献者"
-      ]
-    }
-  }
-  </script>
+    <!-- 贡献者区域 - 使用marquee实现滚动效果 -->
+    <div class="section">
+      <text class="section-title">贡献者</text>
+      
+        <div class="contributors-grid">
+          <div class="contributor-card" for="contributor in contributors">
+            <text class="contributor-name">{{contributor}}</text>
+          </div>
+        </div>
+      </marquee>
+    </div>
+    
+    <!-- 进入游戏按钮 -->
+    <div class="footer">
+      <input class="enter-btn" type="button" value="进入游戏" onclick="enterGame" />
+    </div>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+
+export default {
+  private: {
+    contributors: [
+      "lagency", "智心逍遥", "sky", 
+      "GuoHao", "YaXuan", "Tom",
+      "Jerry", "Micheal", "其他贡献者"
+    ]
+  },
   
-  <style>
-  /* 全局样式 */
-  .developer {
+  enterGame() {
+    router.replace({ uri: 'pages/welcome' })
+  }
+}
+</script>
+
+<style>
+  .container {
     flex-direction: column;
     width: 100%;
     height: 100%;
-    padding: 30px;
-    background-color: #000000; /* 黑色背景 */
+    background-color: #000000;
+    padding: 30px 20px;
   }
-  
-  /* 头部样式 */
-  .header {
-    width: 100%;
-    justify-content: center;
-    margin-bottom: 40px;
-  }
-  
-  .title {
-    font-size: 42px;
-    font-weight: bold;
-    color: #ffffff; /* 白色字体 */
-    text-align: center;
-    letter-spacing: 2px;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  }
-  
-  /* 通用卡片样式 */
-  .author-card, .contributor-card {
-    background-color: #1a1a1a;
-    border-radius: 15px;
-    border: 2px solid #333333; /* 边框 */
+
+  .section {
+    margin-top: 30px;
     padding: 20px;
-    margin: 10px;
-    justify-content: center;
-    align-items: center;
-    min-width: 200px;
-    min-height: 80px;
+    background-color: #1A1A1A;
+    border-radius: 15px;
   }
-  
-  /* 作者区域 */
-  .author-section {
-    width: 100%;
-    margin-bottom: 40px;
-  }
-  
+
+  /* 左上角标题样式 */
   .section-title {
     font-size: 32px;
-    color: #ffffff;
-    margin-bottom: 20px;
+    color: #4FC3F7;
     font-weight: bold;
-    text-align: center;
+    margin-bottom: 20px;
+    align-self: flex-start; /* 左上角对齐 */
   }
-  
+
   .author-container {
     flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: space-around;
   }
-  
+
+  .author-card {
+    width: 45%;
+    padding: 25px 10px;
+    background-color: #1E3C72;
+    border-radius: 12px;
+    align-items: center;
+  }
+
   .author-name {
     font-size: 28px;
-    color: #4a90e2; /* 作者名字特殊颜色 */
+    color: #FFFFFF;
     font-weight: bold;
-    text-align: center;
   }
-  
-  /* 贡献者区域 */
-  .contributors-section {
-    width: 100%;
-    flex: 1;
+
+  /* 贡献者滚动区域 */
+  .contributors-marquee {
+    height: 300px; /* 固定高度实现滚动 */
   }
-  
+
   .contributors-grid {
     flex-direction: row;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: space-between;
   }
-  
+
   .contributor-card {
-    width: 30%; /* 每行三个 */
-    min-height: 100px;
+    width: 30%; /* 三列布局 */
+    padding: 15px 5px;
+    background-color: #283250;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    align-items: center;
   }
-  
+
   .contributor-name {
-    font-size: 26px;
-    color: #ffffff;
+    font-size: 24px;
+    color: #E0E0E0;
     text-align: center;
   }
-  
-  /* 底部样式 */
+
   .footer {
     width: 100%;
-    justify-content: center;
-    margin-top: 30px;
+    padding: 40px 0;
+    align-items: center;
   }
-  
-  .loading-text {
-    font-size: 24px;
-    color: #aaaaaa;
-    animation: blink 1.5s infinite;
+
+  .enter-btn {
+    width: 80%;
+    height: 80px;
+    border-radius: 40px;
+    background-color: #09BA07;
+    color: #FFFFFF;
+    font-size: 32px;
+    font-weight: bold;
   }
-  
-  /* 闪烁动画 */
-  @keyframes blink {
-    0%, 100% {
-      opacity: 0.5;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-  </style>
+</style>

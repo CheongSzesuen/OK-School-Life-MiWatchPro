@@ -1,759 +1,174 @@
-<!-- src/pages/main/main.ux -->
 <template>
-    <div class="container">
-      <!-- 顶部导航 -->
-      <div class="top-bar">
-        <div class="back-btn" if="{{showBack}}" onclick="backToWelcome">
-          <text>←</text>
-        </div>
-        <div class="page-title">
-          <text>{{pageTitle}}</text>
-        </div>
+  <div class="container">
+    <!-- 顶部图标 -->
+    <image class="logo" src="../../common/assets/icon-v4.png"></image>
+    
+    <!-- 标题区域 -->
+    <div class="header">
+      <text class="title">OK School Life</text>
+      <text class="version">beta {{version}}</text>
+    </div>
+    
+    <!-- 按钮区域 -->
+    <div class="buttons">
+      <div class="btn {{activeBtnIndex === 0 ? 'btn-active' : ''}}" onclick="startGame" ontouchstart="setBtnActive(0)" ontouchend="setBtnInactive(0)">
+        <text class="btn-text">开始游戏</text>
       </div>
       
-      <!-- 主内容区 -->
-      <div class="content">
-        <!-- 欢迎页面 -->
-        <div class="welcome-view" if="{{currentView === 'welcome'}}">
-          <div class="logo">
-            <text>OK</text>
-          </div>
-          <div class="title">
-            <text>OK School Life</text>
-          </div>
-          <div class="version">
-            <text>beta {{version}}</text>
-          </div>
-          
-          <div class="btn" onclick="startGame">
-            <text>开始游戏</text>
-          </div>
-          <div class="btn achievement" onclick="showAllAchievements">
-            <text>查看成就</text>
-          </div>
-          <div class="btn exit" onclick="exitGame">
-            <text>退出游戏</text>
-          </div>
-        </div>
-        
-        <!-- 学校选择页面 -->
-        <div class="school-choice-view" if="{{currentView === 'school-choice'}}">
-          <text class="choice-title">{{schoolChoiceTitle}}</text>
-          
-          <div class="choice-container">
-            <div class="school-option" for="{{schoolOptions}}">
-              <div class="school-card" onclick="selectSchool($item.id)">
-                <text class="school-name">{{$item.name}}</text>
-                <text class="school-desc">{{$item.description}}</text>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 游戏主页面 -->
-        <div class="game-view" if="{{currentView === 'game'}}">
-          <text class="event-title">{{currentEvent.question}}</text>
-          
-          <list class="scroll-view">
-            <list-item type="choice" for="{{currentEvent.choices}}">
-              <div class="choice-btn" onclick="handleChoice($item.key)">
-                <text>{{$item.value}}</text>
-              </div>
-            </list-item>
-          </list>
-        </div>
-        
-        <!-- 成就展示页面 -->
-        <div class="achievement-view" if="{{currentView === 'achievement'}}">
-          <text class="achievement-title">{{achievementTitle}}</text>
-          <text class="score-text">{{scoreText}}</text>
-          
-          <div if="{{achievements.length > 0}}">
-            <text class="section-title">成就列表：</text>
-            <list class="achievement-scroller">
-              <list-item type="achievement" for="{{achievements}}">
-                <div class="achievement-item">
-                  <text>{{$idx + 1}}. {{$item}}</text>
-                </div>
-              </list-item>
-            </list>
-          </div>
-          
-          <div if="{{achievements.length === 0}}">
-            <text class="no-achievement">尚未获得任何成就</text>
-          </div>
-          
-          <div class="btn-group">
-            <div class="btn" onclick="backToWelcome">
-              <text>返回主菜单</text>
-            </div>
-            <div class="btn" if="{{showNewGame}}" onclick="startGame">
-              <text>再来一局</text>
-            </div>
-          </div>
-        </div>
+      <div class="btn {{activeBtnIndex === 1 ? 'btn-active' : ''}}" onclick="showAchievements" ontouchstart="setBtnActive(1)" ontouchend="setBtnInactive(1)">
+        <text class="btn-text">查看成就</text>
       </div>
       
-      <!-- 结果弹窗 -->
-      <div class="result-overlay" if="{{showResult}}">
-        <div class="result-container">
-          <text class="result-text">{{resultText}}</text>
-          <div class="continue-btn" onclick="handleContinue">
-            <text>{{continueText}}</text>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 底部状态栏 -->
-      <div class="status-bar">
-        <text>{{currentTime}}</text>
-        <text>100%</text>
+      <div class="btn {{activeBtnIndex === 2 ? 'btn-active' : ''}}" onclick="exitGame" ontouchstart="setBtnActive(2)" ontouchend="setBtnInactive(2)">
+        <text class="btn-text">退出游戏</text>
       </div>
     </div>
-  </template>
+    
+    <!-- 底部装饰 -->
+    <div class="footer">
+      <text class="hint">选择你的校园生活之旅</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import app from '@system.app'
+
+export default {
+  private: {
+    version: 'v0.3.10',
+    activeBtnIndex: -1
+  },
   
-  <style>
-    .container {
-      flex-direction: column;
-      width: 100%;
-      height: 100%;
-      background-color: #ffffff;
-    }
-    
-    .top-bar {
-      height: 80px;
-      background-color: #4a90e2;
-      align-items: center;
-      padding: 0 30px;
-    }
-    
-    .back-btn {
-      font-size: 40px;
-      color: #ffffff;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .page-title {
-      flex: 1;
-      text-align: center;
-      font-size: 36px;
-      color: #ffffff;
-      font-weight: bold;
-    }
-    
-    .content {
-      flex: 1;
-      padding: 20px;
-    }
-    
-    /* 欢迎页面样式 */
-    .welcome-view {
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      width: 100%;
-    }
-    
-    .logo {
-      width: 150px;
-      height: 150px;
-      background-color: #4a90e2;
-      border-radius: 75px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 30px;
-    }
-    
-    .logo text {
-      color: #ffffff;
-      font-size: 60px;
-      font-weight: bold;
-    }
-    
-    .title text {
-      font-size: 40px;
-      font-weight: bold;
-    }
-    
-    .version text {
-      font-size: 28px;
-      color: #666666;
-    }
-    
-    .title, .version {
-      margin-bottom: 10px;
-      text-align: center;
-    }
-    
-    .version {
-      margin-bottom: 60px;
-    }
-    
-    .btn {
-      width: 400px;
-      height: 90px;
-      margin-top: 30px;
-      border-radius: 45px;
-      background-color: #4a90e2;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .btn text {
-      color: #ffffff;
-      font-size: 32px;
-    }
-    
-    .achievement {
-      background-color: #09ba07;
-    }
-    
-    .exit {
-      background-color: #e74c3c;
-    }
-    
-    /* 学校选择页面样式 */
-    .school-choice-view {
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-      padding: 20px;
-    }
-    
-    .choice-title {
-      font-size: 36px;
-      color: #333333;
-      text-align: center;
-      margin-bottom: 40px;
-      font-weight: bold;
-    }
-    
-    .choice-container {
-      flex-direction: column;
-      width: 100%;
-    }
-    
-    .school-option {
-      margin-bottom: 30px;
-    }
-    
-    .school-card {
-      width: 100%;
-      padding: 30px;
-      background-color: #f5f5f5;
-      border-radius: 20px;
-      flex-direction: column;
-    }
-    
-    .school-name {
-      font-size: 32px;
-      color: #4a90e2;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-    
-    .school-desc {
-      font-size: 28px;
-      color: #666666;
-      line-height: 40px;
-    }
-    
-    /* 游戏主页面样式 */
-    .game-view {
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-    }
-    
-    .event-title {
-      font-size: 32px;
-      color: #333333;
-      margin: 20px 0;
-      line-height: 48px;
-      text-align: center;
-      padding: 0 10px;
-    }
-    
-    .scroll-view {
-      flex: 1;
-      margin-top: 30px;
-      padding: 20px;
-      background-color: #f5f5f5;
-      border-radius: 20px;
-    }
-    
-    .choice-btn {
-      width: 100%;
-      height: 90px;
-      background-color: #4a90e2;
-      border-radius: 16px;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-    
-    .choice-btn text {
-      color: #ffffff;
-      font-size: 32px;
-    }
-    
-    /* 成就展示样式 */
-    .achievement-view {
-      flex-direction: column;
-      height: 100%;
-      width: 100%;
-    }
-    
-    .achievement-title {
-      font-size: 40px;
-      color: #333333;
-      text-align: center;
-      font-weight: bold;
-      margin-bottom: 20px;
-    }
-    
-    .score-text {
-      font-size: 32px;
-      color: #4a90e2;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    
-    .section-title {
-      font-size: 32px;
-      color: #333333;
-      margin-top: 20px;
-      margin-bottom: 10px;
-    }
-    
-    .achievement-scroller {
-      flex: 1;
-      background-color: #f5f5f5;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 30px;
-    }
-    
-    .achievement-item {
-      padding: 16px 0;
-      border-bottom: 2px solid #eeeeee;
-      justify-content: center;
-    }
-    
-    .achievement-item text {
-      font-size: 28px;
-    }
-    
-    .no-achievement {
-      font-size: 32px;
-      color: #666666;
-      text-align: center;
-      margin: 40px 0;
-    }
-    
-    .btn-group {
-      flex-direction: column;
-      width: 100%;
-      align-items: center;
-    }
-    
-    /* 结果弹窗样式 */
-    .result-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .result-container {
-      width: 80%;
-      padding: 40px;
-      background-color: #ffffff;
-      border-radius: 20px;
-      align-items: center;
-    }
-    
-    .result-text {
-      font-size: 32px;
-      color: #333333;
-      margin: 20px;
-      padding: 20px;
-      text-align: center;
-      line-height: 48px;
-    }
-    
-    .continue-btn {
-      width: 70%;
-      height: 90px;
-      margin-top: 40px;
-      background-color: #09ba07;
-      border-radius: 45px;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .continue-btn text {
-      color: #ffffff;
-      font-size: 32px;
-    }
-    
-    /* 底部状态栏 */
-    .status-bar {
-      height: 60px;
-      background-color: #f0f0f0;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 30px;
-      font-size: 24px;
-      color: #666666;
-      border-top: 2px solid #e0e0e0;
-    }
-    
-    .status-bar text {
-      color: #666666;
-      font-size: 24px;
-    }
-  </style>
+  startGame() {
+    router.push({
+      uri: '/main',
+      params: { newGame: true }
+    })
+  },
   
-  <script>
-    import router from '@system.router'
-    import fetch from '@system.fetch'
-    import storage from '@system.storage'
-    import prompt from '@system.prompt'
+  showAchievements() {
+    router.replace({
+      uri: 'pages/achievement',
+      params: { showAchievements: true }
+    })
+  },
   
-    export default {
-      private: {
-        // 视图状态
-        currentView: 'welcome',
-        pageTitle: 'OK School Life',
-        showBack: false,
-        
-        // 学校选择数据
-        schoolChoiceTitle: '选择你的学校',
-        schoolOptions: [
-          {
-            id: '1',
-            name: '羊县中学',
-            description: '普通公立学校，学费较低，学习氛围一般'
-          },
-          {
-            id: '2',
-            name: '闪西省汗中中学',
-            description: '省级重点中学，学费适中，学习氛围浓厚'
-          },
-          {
-            id: '3',
-            name: '汗中市龙港高级中学',
-            description: '私立贵族学校，学费高昂，设施一流'
-          }
-        ],
-        
-        // 游戏数据
-        version: 'v0.3.10',
-        currentEvent: {
-          question: '加载中...',
-          choices: []
-        },
-        resultText: '',
-        showResult: false,
-        gameOver: false,
-        continueText: '继续',
-        score: 0,
-        currentAchievements: [],
-        allAchievements: [],
-        highestScore: 0,
-        
-        // 成就数据
-        achievementTitle: '本轮游戏成就',
-        scoreText: '分数: 0',
-        achievements: [],
-        showNewGame: false,
-        
-        // 状态栏
-        currentTime: '12:00',
-        
-        // 事件数据
-        eventData: {
-          event_list: [],
-          random_events: []
-        },
-        
-        // 当前选择的学校
-        selectedSchool: null
-      },
-      
-      onInit() {
-        // 初始化时间
-        this.updateTime();
-        
-        // 加载游戏数据
-        this.loadGameData();
-        
-        // 加载历史数据
-        this.loadHistoryData();
-      },
-      
-      updateTime() {
-        const now = new Date();
-        const hours = now.getHours().toString().padStart(2, '0');
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        this.currentTime = `${hours}:${minutes}`;
-        
-        // 每分钟更新一次时间
-        setTimeout(() => {
-          this.updateTime();
-        }, 60000);
-      },
-      
-      async loadGameData() {
-        try {
-          // 实际项目中应从文件加载数据
-          this.eventData = {
-            event_list: [
-              "你中考考得很好，现在可以选择学校",
-              "你中考考得一般，现在可以选择学校",
-              "你中考考得不好，现在可以选择学校"
-            ],
-            random_events: [
-              {
-                question: "你在学校遇到{ctb_wai}事件：食堂推出新菜品",
-                choices: [
-                  {key: "1", value: "尝试新菜品"},
-                  {key: "2", value: "吃原来的菜"},
-                  {key: "3", value: "不吃午饭"}
-                ]
-              },
-              {
-                question: "你在学校遇到{adp_lag}事件：老师拖堂20分钟",
-                choices: [
-                  {key: "1", value: "耐心等待"},
-                  {key: "2", value: "提醒老师时间"},
-                  {key: "3", value: "直接离开教室"}
-                ]
-              },
-              {
-                question: "你在学校遇到{ctb_zhi}事件：体育课被数学老师占用",
-                choices: [
-                  {key: "1", value: "默默接受"},
-                  {key: "2", value: "向班主任反映"},
-                  {key: "3", value: "坚持上体育课"}
-                ]
-              },
-              {
-                question: "你在学校遇到{ctb_sky}事件：同学邀请你参加生日派对",
-                choices: [
-                  {key: "1", value: "欣然接受"},
-                  {key: "2", value: "委婉拒绝"},
-                  {key: "3", value: "答应但要求AA制"}
-                ]
-              }
-            ]
-          };
-        } catch (e) {
-          prompt.showToast({
-            message: '加载游戏数据失败'
-          });
-        }
-      },
-      
-      loadHistoryData() {
-        // 实际项目中应从存储加载
-        this.allAchievements = [
-          "新生入学",
-          "优秀学生",
-          "全勤奖",
-          "社团达人",
-          "学霸称号"
-        ];
-        this.highestScore = 85;
-      },
-      
-      startGame() {
-        // 重置游戏状态
-        this.score = 0;
-        this.currentAchievements = [];
-        this.gameOver = false;
-        this.achievements = [];
-        this.selectedSchool = null;
-        
-        // 切换到学校选择视图
-        this.currentView = 'school-choice';
-        this.pageTitle = '选择学校';
-        this.showBack = true;
-      },
-      
-      selectSchool(schoolId) {
-        this.selectedSchool = this.schoolOptions.find(school => school.id === schoolId);
-        
-        let result = '';
-        let isGameOver = false;
-        
-        switch(schoolId) {
-          case '1':
-            result = '你选择了羊县中学。';
-            break;
-          case '2':
-            result = '你选择了闪西省汗中中学。';
-            break;
-          case '3':
-            // 特殊处理：如果中考成绩不好，选择贵族学校会破产
-            if (this.getRandomStartEvent() === this.eventData.event_list[2]) {
-              result = '你家境贫寒，无法负担高昂学费！游戏结束。';
-              isGameOver = true;
-            } else {
-              result = '你选择了汗中市龙港高级中学。';
-            }
-            break;
-        }
-        
-        this.showResult(result, isGameOver, () => {
-          if (!isGameOver) {
-            // 开始游戏主界面
-            this.currentView = 'game';
-            this.pageTitle = '游戏进行中';
-            this.nextEvent();
-          }
-        });
-      },
-      
-      getRandomStartEvent() {
-        const weights = [0.2, 0.5, 0.3];
-        const randomNum = Math.random();
-        let cumulativeWeight = 0;
-        
-        for (let i = 0; i < weights.length; i++) {
-          cumulativeWeight += weights[i];
-          if (randomNum < cumulativeWeight) {
-            return this.eventData.event_list[i];
-          }
-        }
-        
-        return this.eventData.event_list[0];
-      },
-      
-      handleChoice(choice) {
-        const results = [
-          "你的选择带来了积极的结果，分数+10",
-          "这个选择带来了意想不到的后果，分数-5",
-          "这个选择改变了你的命运轨迹"
-        ];
-        
-        const randomResult = results[Math.floor(Math.random() * results.length)];
-        const isGameOver = Math.random() > 0.7; // 30%几率游戏结束
-        
-        this.showResult(randomResult, isGameOver);
-      },
-      
-      showResult(text, isGameOver, callback) {
-        this.resultText = text;
-        this.gameOver = isGameOver;
-        this.continueText = isGameOver ? '查看成就' : '继续';
-        this.showResult = true;
-        
-        // 保存回调函数
-        this.resultCallback = callback;
-      },
-      
-      handleContinue() {
-        this.showResult = false;
-        
-        if (this.gameOver) {
-          // 游戏结束，显示成就
-          this.showRoundAchievements();
-        } else {
-          // 继续游戏
-          if (this.resultCallback) {
-            this.resultCallback();
-          } else {
-            this.nextEvent();
-          }
-        }
-      },
-      
-      showRoundAchievements() {
-        // 添加成就
-        this.currentAchievements = [
-          "新生入学",
-          "第一堂课",
-          "校园探索者"
-        ];
-        
-        // 添加学校特定成就
-        if (this.selectedSchool) {
-          this.currentAchievements.push(`${this.selectedSchool.name}校友`);
-        }
-        
-        // 更新成就数据
-        this.currentAchievements.forEach(achievement => {
-          if (!this.allAchievements.includes(achievement)) {
-            this.allAchievements.push(achievement);
-          }
-        });
-        
-        // 更新分数
-        this.score = Math.floor(Math.random() * 100);
-        if (this.score > this.highestScore) {
-          this.highestScore = this.score;
-        }
-        
-        // 显示成就视图
-        this.achievementTitle = '本轮游戏成就';
-        this.scoreText = `分数: ${this.score}`;
-        this.achievements = this.currentAchievements;
-        this.showNewGame = true;
-        this.currentView = 'achievement';
-        this.pageTitle = '成就展示';
-      },
-      
-      showAllAchievements() {
-        this.achievementTitle = '所有成就';
-        this.scoreText = `历史最高分: ${this.highestScore}`;
-        this.achievements = this.allAchievements;
-        this.showNewGame = false;
-        this.currentView = 'achievement';
-        this.pageTitle = '成就展示';
-        this.showBack = true;
-      },
-      
-      nextEvent() {
-        // 随机选择一个事件
-        const randomEvent = this.eventData.random_events[
-          Math.floor(Math.random() * this.eventData.random_events.length)
-        ];
-        
-        // 处理占位符
-        const contributors = {
-          "ctb_wai": "(由WaiJade贡献)",
-          "adp_lag": "(由lagency亲身经历改编)",
-          "ctb_zhi": "(由智心逍遥贡献)",
-          "ctb_sky": "(由sky贡献)"
-        };
-        
-        let question = randomEvent.question;
-        question = question.replace(/{(\w+)}/g, (match, p1) => {
-          return contributors[p1] || match;
-        });
-        
-        this.currentEvent = {
-          question: question,
-          choices: randomEvent.choices
-        };
-      },
-      
-      backToWelcome() {
-        this.currentView = 'welcome';
-        this.pageTitle = 'OK School Life';
-        this.showBack = false;
-      },
-      
-      exitGame() {
-        router.clear();
-      }
-    }
-  </script>
+  exitGame() {
+    app.terminate()
+  },
+  
+  setBtnActive(index) {
+    this.activeBtnIndex = index
+  },
+  
+  setBtnInactive() {
+    this.activeBtnIndex = -1
+  }
+}
+</script>
+
+<style>
+.container {
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  padding: 40px 20px;
+}
+
+.logo {
+  width: 180px;
+  height: 180px;
+  border-radius: 30px;
+  margin-top: 40px;
+  box-shadow: 0 0 20px rgba(9, 186, 7, 0.5);
+  animation: pulse 3s infinite;
+}
+
+.header {
+  flex-direction: column;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.title {
+  font-size: 42px;
+  color: #ffffff;
+  font-weight: bold;
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  margin-bottom: 10px;
+}
+
+.version {
+  font-size: 22px;
+  color: #aaaaaa;
+  text-align: center;
+}
+
+.buttons {
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 60px;
+}
+
+.btn {
+  width: 100%;
+  height: 80px;
+  margin-top: 30px;
+  border-radius: 40px;
+  background-color: #09ba07;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+  box-shadow: 0 5px 15px rgba(9, 186, 7, 0.3);
+}
+
+.btn-text {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.btn-active {
+  background-color: #088a06;
+  transform: translateY(3px);
+  box-shadow: 0 2px 5px rgba(9, 186, 7, 0.2);
+}
+
+.footer {
+  width: 100%;
+  justify-content: center;
+  padding: 20px;
+}
+
+.hint {
+  font-size: 20px;
+  color: #666666;
+  text-align: center;
+  font-style: italic;
+}
+
+/* 呼吸动画 */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+}
+</style>
