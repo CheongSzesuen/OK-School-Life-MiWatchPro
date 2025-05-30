@@ -29,6 +29,11 @@
   console.info("贡献者:", JSON.stringify(this.contributors));
   console.info("developer页面初始化完成");
   this.contributors = this.contributors || [];
+  setTimeout(() => {
+      router.replace({
+        uri: 'pages/main' 
+      })
+    }, 5000)
 }
   }
   </script>

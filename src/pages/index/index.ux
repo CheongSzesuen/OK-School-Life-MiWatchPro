@@ -14,7 +14,7 @@ export default {
     // 页面初始化时启动定时器
     setTimeout(() => {
       router.replace({
-        uri: 'pages/developer' // 替换为你的下一页路径
+        uri: 'pages/developer' 
       })
     }, 5000)
   },
