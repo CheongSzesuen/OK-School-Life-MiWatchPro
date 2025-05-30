@@ -26,6 +26,12 @@
       },
       "pages/developer": {
       "component": "developer"
+    },
+    "pages/main": {
+      "component": "main"
+    },
+    "pages/achievement": {
+      "component": "achievement"
     }
     }
   }
