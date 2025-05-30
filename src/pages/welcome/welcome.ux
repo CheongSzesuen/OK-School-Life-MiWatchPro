@@ -79,14 +79,13 @@
       },
       
       showAchievements() {
-        router.push({
-          uri: '/main',
+        router.replace({
+            uri: 'pages/achievement' ,
           params: { showAchievements: true }
         })
       },
-      
       exitGame() {
-        router.clear()
+        app.terminate()
       }
     }
   </script>

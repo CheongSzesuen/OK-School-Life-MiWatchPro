@@ -32,6 +32,9 @@
     },
     "pages/main": {
       "component": "main"
+    },
+    "pages/achievement": {
+      "component": "achievement"
     }
     
     

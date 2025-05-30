@@ -36,13 +36,13 @@
   import router from "@system.router"
   
   export default {
- //   onInit() {
+    onInit() {
       // 页面初始化时启动定时器
- //     setTimeout(() => {
-  //      router.replace({
-  //        uri: 'pages/welcome' 
-  //      })
-  //    }, 5000)
+      setTimeout(() => {
+        router.replace({
+          uri: 'pages/welcome' 
+        })
+   }, 5000)
       
       console.info("developer页面初始化开始");
       console.info("作者:", this.authors);
