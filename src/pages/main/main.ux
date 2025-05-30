@@ -3,17 +3,27 @@
     <div class="container">
       <!-- 顶部导航 -->
       <div class="top-bar">
-        <div class="back-btn" if="{{showBack}}" onclick="backToWelcome">←</div>
-        <div class="page-title">{{pageTitle}}</div>
+        <div class="back-btn" if="{{showBack}}" onclick="backToWelcome">
+          <text>←</text>
+        </div>
+        <div class="page-title">
+          <text>{{pageTitle}}</text>
+        </div>
       </div>
       
       <!-- 主内容区 -->
       <div class="content">
         <!-- 欢迎页面 -->
         <div class="welcome-view" if="{{currentView === 'welcome'}}">
-          <div class="logo">OK</div>
-          <div class="title">OK School Life</div>
-          <div class="version">beta {{version}}</div>
+          <div class="logo">
+            <text>OK</text>
+          </div>
+          <div class="title">
+            <text>OK School Life</text>
+          </div>
+          <div class="version">
+            <text>beta {{version}}</text>
+          </div>
           
           <div class="btn" onclick="startGame">
             <text>开始游戏</text>
@@ -23,6 +33,20 @@
           </div>
           <div class="btn exit" onclick="exitGame">
             <text>退出游戏</text>
+          </div>
+        </div>
+        
+        <!-- 学校选择页面 -->
+        <div class="school-choice-view" if="{{currentView === 'school-choice'}}">
+          <text class="choice-title">{{schoolChoiceTitle}}</text>
+          
+          <div class="choice-container">
+            <div class="school-option" for="{{schoolOptions}}">
+              <div class="school-card" onclick="selectSchool($item.id)">
+                <text class="school-name">{{$item.name}}</text>
+                <text class="school-desc">{{$item.description}}</text>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -48,7 +72,9 @@
             <text class="section-title">成就列表：</text>
             <list class="achievement-scroller">
               <list-item type="achievement" for="{{achievements}}">
-                <text class="achievement-item">{{$idx + 1}}. {{$item}}</text>
+                <div class="achievement-item">
+                  <text>{{$idx + 1}}. {{$item}}</text>
+                </div>
               </list-item>
             </list>
           </div>
@@ -104,6 +130,8 @@
     .back-btn {
       font-size: 40px;
       color: #ffffff;
+      justify-content: center;
+      align-items: center;
     }
     
     .page-title {
@@ -144,17 +172,22 @@
       font-weight: bold;
     }
     
-    .title {
+    .title text {
       font-size: 40px;
       font-weight: bold;
+    }
+    
+    .version text {
+      font-size: 28px;
+      color: #666666;
+    }
+    
+    .title, .version {
       margin-bottom: 10px;
       text-align: center;
-      color: #333333;
     }
     
     .version {
-      font-size: 28px;
-      color: #666666;
       margin-bottom: 60px;
     }
     
@@ -179,6 +212,52 @@
     
     .exit {
       background-color: #e74c3c;
+    }
+    
+    /* 学校选择页面样式 */
+    .school-choice-view {
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      padding: 20px;
+    }
+    
+    .choice-title {
+      font-size: 36px;
+      color: #333333;
+      text-align: center;
+      margin-bottom: 40px;
+      font-weight: bold;
+    }
+    
+    .choice-container {
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .school-option {
+      margin-bottom: 30px;
+    }
+    
+    .school-card {
+      width: 100%;
+      padding: 30px;
+      background-color: #f5f5f5;
+      border-radius: 20px;
+      flex-direction: column;
+    }
+    
+    .school-name {
+      font-size: 32px;
+      color: #4a90e2;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    
+    .school-desc {
+      font-size: 28px;
+      color: #666666;
+      line-height: 40px;
     }
     
     /* 游戏主页面样式 */
@@ -210,7 +289,6 @@
       height: 90px;
       background-color: #4a90e2;
       border-radius: 16px;
-      font-size: 32px;
       justify-content: center;
       align-items: center;
       margin-bottom: 20px;
@@ -218,6 +296,7 @@
     
     .choice-btn text {
       color: #ffffff;
+      font-size: 32px;
     }
     
     /* 成就展示样式 */
@@ -260,6 +339,10 @@
     .achievement-item {
       padding: 16px 0;
       border-bottom: 2px solid #eeeeee;
+      justify-content: center;
+    }
+    
+    .achievement-item text {
       font-size: 28px;
     }
     
@@ -311,13 +394,13 @@
       margin-top: 40px;
       background-color: #09ba07;
       border-radius: 45px;
-      font-size: 32px;
       justify-content: center;
       align-items: center;
     }
     
     .continue-btn text {
       color: #ffffff;
+      font-size: 32px;
     }
     
     /* 底部状态栏 */
@@ -330,6 +413,11 @@
       font-size: 24px;
       color: #666666;
       border-top: 2px solid #e0e0e0;
+    }
+    
+    .status-bar text {
+      color: #666666;
+      font-size: 24px;
     }
   </style>
   
@@ -345,6 +433,26 @@
         currentView: 'welcome',
         pageTitle: 'OK School Life',
         showBack: false,
+        
+        // 学校选择数据
+        schoolChoiceTitle: '选择你的学校',
+        schoolOptions: [
+          {
+            id: '1',
+            name: '羊县中学',
+            description: '普通公立学校，学费较低，学习氛围一般'
+          },
+          {
+            id: '2',
+            name: '闪西省汗中中学',
+            description: '省级重点中学，学费适中，学习氛围浓厚'
+          },
+          {
+            id: '3',
+            name: '汗中市龙港高级中学',
+            description: '私立贵族学校，学费高昂，设施一流'
+          }
+        ],
         
         // 游戏数据
         version: 'v0.3.10',
@@ -368,30 +476,39 @@
         showNewGame: false,
         
         // 状态栏
-        currentTime: '12:00'
+        currentTime: '12:00',
+        
+        // 事件数据
+        eventData: {
+          event_list: [],
+          random_events: []
+        },
+        
+        // 当前选择的学校
+        selectedSchool: null
       },
       
       onInit() {
         // 初始化时间
-        this.updateTime()
+        this.updateTime();
         
         // 加载游戏数据
-        this.loadGameData()
+        this.loadGameData();
         
         // 加载历史数据
-        this.loadHistoryData()
+        this.loadHistoryData();
       },
       
       updateTime() {
-        const now = new Date()
-        const hours = now.getHours().toString().padStart(2, '0')
-        const minutes = now.getMinutes().toString().padStart(2, '0')
-        this.currentTime = `${hours}:${minutes}`
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        this.currentTime = `${hours}:${minutes}`;
         
         // 每分钟更新一次时间
         setTimeout(() => {
-          this.updateTime()
-        }, 60000)
+          this.updateTime();
+        }, 60000);
       },
       
       async loadGameData() {
@@ -419,13 +536,29 @@
                   {key: "2", value: "提醒老师时间"},
                   {key: "3", value: "直接离开教室"}
                 ]
+              },
+              {
+                question: "你在学校遇到{ctb_zhi}事件：体育课被数学老师占用",
+                choices: [
+                  {key: "1", value: "默默接受"},
+                  {key: "2", value: "向班主任反映"},
+                  {key: "3", value: "坚持上体育课"}
+                ]
+              },
+              {
+                question: "你在学校遇到{ctb_sky}事件：同学邀请你参加生日派对",
+                choices: [
+                  {key: "1", value: "欣然接受"},
+                  {key: "2", value: "委婉拒绝"},
+                  {key: "3", value: "答应但要求AA制"}
+                ]
               }
             ]
-          }
+          };
         } catch (e) {
           prompt.showToast({
             message: '加载游戏数据失败'
-          })
+          });
         }
       },
       
@@ -434,115 +567,112 @@
         this.allAchievements = [
           "新生入学",
           "优秀学生",
-          "全勤奖"
-        ]
-        this.highestScore = 85
+          "全勤奖",
+          "社团达人",
+          "学霸称号"
+        ];
+        this.highestScore = 85;
       },
       
       startGame() {
         // 重置游戏状态
-        this.score = 0
-        this.currentAchievements = []
-        this.gameOver = false
+        this.score = 0;
+        this.currentAchievements = [];
+        this.gameOver = false;
+        this.achievements = [];
+        this.selectedSchool = null;
         
-        // 切换到游戏视图
-        this.currentView = 'game'
-        this.pageTitle = '游戏进行中'
-        this.showBack = true
-        
-        // 开始第一个事件
-        this.startFirstEvent()
+        // 切换到学校选择视图
+        this.currentView = 'school-choice';
+        this.pageTitle = '选择学校';
+        this.showBack = true;
       },
       
-      startFirstEvent() {
-        const startEvent = this.getRandomStartEvent()
-        this.currentEvent = {
-          question: `${startEvent}。\n你中考考得很好，现在可以选择学校。`,
-          choices: [
-            {key: '1', value: '羊县中学'},
-            {key: '2', value: '闪西省汗中中学'},
-            {key: '3', value: '汗中市龙港高级中学'}
-          ]
+      selectSchool(schoolId) {
+        this.selectedSchool = this.schoolOptions.find(school => school.id === schoolId);
+        
+        let result = '';
+        let isGameOver = false;
+        
+        switch(schoolId) {
+          case '1':
+            result = '你选择了羊县中学。';
+            break;
+          case '2':
+            result = '你选择了闪西省汗中中学。';
+            break;
+          case '3':
+            // 特殊处理：如果中考成绩不好，选择贵族学校会破产
+            if (this.getRandomStartEvent() === this.eventData.event_list[2]) {
+              result = '你家境贫寒，无法负担高昂学费！游戏结束。';
+              isGameOver = true;
+            } else {
+              result = '你选择了汗中市龙港高级中学。';
+            }
+            break;
         }
+        
+        this.showResult(result, isGameOver, () => {
+          if (!isGameOver) {
+            // 开始游戏主界面
+            this.currentView = 'game';
+            this.pageTitle = '游戏进行中';
+            this.nextEvent();
+          }
+        });
       },
       
       getRandomStartEvent() {
-        const weights = [0.2, 0.5, 0.3]
-        const randomNum = Math.random()
-        let cumulativeWeight = 0
+        const weights = [0.2, 0.5, 0.3];
+        const randomNum = Math.random();
+        let cumulativeWeight = 0;
         
         for (let i = 0; i < weights.length; i++) {
-          cumulativeWeight += weights[i]
+          cumulativeWeight += weights[i];
           if (randomNum < cumulativeWeight) {
-            return this.eventData.event_list[i]
+            return this.eventData.event_list[i];
           }
         }
         
-        return this.eventData.event_list[0]
+        return this.eventData.event_list[0];
       },
       
       handleChoice(choice) {
-        if (this.currentEvent.question.includes('中考')) {
-          // 学校选择
-          this.handleSchoolChoice(choice)
-        } else {
-          // 普通事件选择
-          this.handleEventChoice(choice)
-        }
-      },
-      
-      handleSchoolChoice(choice) {
-        let result = ''
-        
-        switch(choice) {
-          case '1':
-            result = '你选择了羊县中学。'
-            break
-          case '2':
-            result = '你选择了闪西省汗中中学。'
-            break
-          case '3':
-            if (this.getRandomStartEvent() === this.eventData.event_list[2]) {
-              this.showResult('你家境贫寒，直接破产了！游戏结束。', true)
-              return
-            } else {
-              result = '你选择了汗中市龙港高级中学。'
-            }
-            break
-        }
-        
-        this.showResult(result, false)
-      },
-      
-      handleEventChoice(choice) {
         const results = [
           "你的选择带来了积极的结果，分数+10",
           "这个选择带来了意想不到的后果，分数-5",
           "这个选择改变了你的命运轨迹"
-        ]
+        ];
         
-        const randomResult = results[Math.floor(Math.random() * results.length)]
-        const isGameOver = Math.random() > 0.7 // 30%几率游戏结束
+        const randomResult = results[Math.floor(Math.random() * results.length)];
+        const isGameOver = Math.random() > 0.7; // 30%几率游戏结束
         
-        this.showResult(randomResult, isGameOver)
+        this.showResult(randomResult, isGameOver);
       },
       
-      showResult(text, isGameOver) {
-        this.resultText = text
-        this.gameOver = isGameOver
-        this.continueText = isGameOver ? '查看成就' : '继续'
-        this.showResult = true
+      showResult(text, isGameOver, callback) {
+        this.resultText = text;
+        this.gameOver = isGameOver;
+        this.continueText = isGameOver ? '查看成就' : '继续';
+        this.showResult = true;
+        
+        // 保存回调函数
+        this.resultCallback = callback;
       },
       
       handleContinue() {
-        this.showResult = false
+        this.showResult = false;
         
         if (this.gameOver) {
           // 游戏结束，显示成就
-          this.showRoundAchievements()
+          this.showRoundAchievements();
         } else {
           // 继续游戏
-          this.nextEvent()
+          if (this.resultCallback) {
+            this.resultCallback();
+          } else {
+            this.nextEvent();
+          }
         }
       },
       
@@ -550,46 +680,52 @@
         // 添加成就
         this.currentAchievements = [
           "新生入学",
-          "第一堂课"
-        ]
+          "第一堂课",
+          "校园探索者"
+        ];
+        
+        // 添加学校特定成就
+        if (this.selectedSchool) {
+          this.currentAchievements.push(`${this.selectedSchool.name}校友`);
+        }
         
         // 更新成就数据
         this.currentAchievements.forEach(achievement => {
           if (!this.allAchievements.includes(achievement)) {
-            this.allAchievements.push(achievement)
+            this.allAchievements.push(achievement);
           }
-        })
+        });
         
         // 更新分数
-        this.score = Math.floor(Math.random() * 100)
+        this.score = Math.floor(Math.random() * 100);
         if (this.score > this.highestScore) {
-          this.highestScore = this.score
+          this.highestScore = this.score;
         }
         
         // 显示成就视图
-        this.achievementTitle = '本轮游戏成就'
-        this.scoreText = `分数: ${this.score}`
-        this.achievements = this.currentAchievements
-        this.showNewGame = true
-        this.currentView = 'achievement'
-        this.pageTitle = '成就展示'
+        this.achievementTitle = '本轮游戏成就';
+        this.scoreText = `分数: ${this.score}`;
+        this.achievements = this.currentAchievements;
+        this.showNewGame = true;
+        this.currentView = 'achievement';
+        this.pageTitle = '成就展示';
       },
       
       showAllAchievements() {
-        this.achievementTitle = '所有成就'
-        this.scoreText = `历史最高分: ${this.highestScore}`
-        this.achievements = this.allAchievements
-        this.showNewGame = false
-        this.currentView = 'achievement'
-        this.pageTitle = '成就展示'
-        this.showBack = true
+        this.achievementTitle = '所有成就';
+        this.scoreText = `历史最高分: ${this.highestScore}`;
+        this.achievements = this.allAchievements;
+        this.showNewGame = false;
+        this.currentView = 'achievement';
+        this.pageTitle = '成就展示';
+        this.showBack = true;
       },
       
       nextEvent() {
         // 随机选择一个事件
         const randomEvent = this.eventData.random_events[
           Math.floor(Math.random() * this.eventData.random_events.length)
-        ]
+        ];
         
         // 处理占位符
         const contributors = {
@@ -597,27 +733,27 @@
           "adp_lag": "(由lagency亲身经历改编)",
           "ctb_zhi": "(由智心逍遥贡献)",
           "ctb_sky": "(由sky贡献)"
-        }
+        };
         
-        let question = randomEvent.question
+        let question = randomEvent.question;
         question = question.replace(/{(\w+)}/g, (match, p1) => {
-          return contributors[p1] || match
-        })
+          return contributors[p1] || match;
+        });
         
         this.currentEvent = {
           question: question,
           choices: randomEvent.choices
-        }
+        };
       },
       
       backToWelcome() {
-        this.currentView = 'welcome'
-        this.pageTitle = 'OK School Life'
-        this.showBack = false
+        this.currentView = 'welcome';
+        this.pageTitle = 'OK School Life';
+        this.showBack = false;
       },
       
       exitGame() {
-        router.clear()
+        router.clear();
       }
     }
   </script>

@@ -1,6 +1,6 @@
 <template>
   <div class="WelcomePage">
-    <text class="title">将会跳转{{ title }}</text>
+    <image class="icon" src="../../common/assets/icon-v4.png"></image>
     <text class="GameName">{{ GameName }}</text>
   </div>
 </template>
@@ -20,7 +20,10 @@ export default {
   },
 
   // 页面级组件的数据模型，影响传入数据的覆盖机制：private内定义的属性不允许被覆盖
-  
+  private: {
+    title: "开发者和贡献者页面",
+    GameName:"Ok School Life"
+  },
 }
 
 </script>

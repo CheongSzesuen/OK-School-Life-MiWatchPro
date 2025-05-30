@@ -1,10 +1,10 @@
 {
   "package": "com.application.watch.demo",
-  "name": "OkSchoolLife",
+  "name": "Ok School Life",
   "versionName": "0.0.1-45",
   "versionCode": 1,
   "minPlatformVersion": 1000,
-  "icon": "/common/logo.png",
+  "icon": "/common/assets/icon-v4.png",
   "deviceTypeList": [
     "watch"
   ],
