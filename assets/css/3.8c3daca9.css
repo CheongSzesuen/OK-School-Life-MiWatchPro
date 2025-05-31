@@ -1,0 +1,33 @@
+.svelte-bjtxe3 {
+	color: #fff
+}
+
+.title.svelte-bjtxe3 {
+	font-size: 3rem;
+	font-weight: 800
+}
+
+.contacts.svelte-bjtxe3 {
+	padding: 1.4em 0;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center
+}
+
+.starMEEEEEEE.svelte-bjtxe3 {
+	margin-left: 1em;
+	opacity: .5;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	-webkit-transition: opacity .2s;
+	transition: opacity .2s
+}
+
+.starMEEEEEEE.svelte-bjtxe3:hover {
+	opacity: 1
+}

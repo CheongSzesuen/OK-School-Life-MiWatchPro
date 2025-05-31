@@ -1,0 +1,95 @@
+.container.svelte-yk8scj.svelte-yk8scj {
+	position: relative;
+	display: block;
+	overflow: hidden;
+	background: #141414;
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex;
+	-webkit-box-orient: horizontal;
+	-webkit-box-direction: normal;
+	-ms-flex-direction: row;
+	flex-direction: row;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center
+}
+
+.container.svelte-yk8scj .content.svelte-yk8scj {
+	padding: 5em
+}
+
+.container.svelte-yk8scj .image.svelte-yk8scj {
+	width: -webkit-fill-available;
+	width: -moz-available;
+	width: fill;
+	height: 100%;
+	background: var(--bg);
+	background-position: center;
+	background-size: cover;
+	-webkit-mask-image: -webkit-gradient(linear,right top,left top,from(#141414),color-stop(90%,transparent));
+	-webkit-mask-image: linear-gradient(-90deg,#141414,transparent 90%);
+	mask-image: -webkit-gradient(linear,right top,left top,from(#141414),color-stop(90%,transparent));
+	mask-image: linear-gradient(-90deg,#141414,transparent 90%)
+}
+
+div.svelte-2hesjr {
+	width: 2em;
+	height: 2em;
+	cursor: pointer;
+	padding: .5em;
+	display: -webkit-inline-box;
+	display: -ms-inline-flexbox;
+	display: inline-flex;
+	border-radius: .6em;
+	background: rgba(136,136,136,.075);
+	-webkit-transition: background-color .2s;
+	transition: background-color .2s
+}
+
+div.svelte-2hesjr:hover {
+	background: rgba(136,136,136,.151)
+}
+
+.card.svelte-13scnqo {
+	padding: 1em;
+	background: rgba(136,136,136,.075);
+	border-radius: .5em;
+	-webkit-transition: background-color .2s;
+	transition: background-color .2s;
+	-webkit-box-shadow: 2px 3px 7px rgba(19,19,19,.329);
+	box-shadow: 2px 3px 7px #13131354;
+	margin: .5em 0
+}
+
+.card.svelte-13scnqo:hover {
+	background: rgba(136,136,136,.151)
+}
+
+.card.svelte-3wbffc.svelte-3wbffc {
+	display: -webkit-box;
+	display: -ms-flexbox;
+	display: flex
+}
+
+.card.svelte-3wbffc .svelte-3wbffc {
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none
+}
+
+.card.svelte-3wbffc img.svelte-3wbffc {
+	width: 3em;
+	margin-right: 1em
+}
+
+.card.svelte-3wbffc .info .name.svelte-3wbffc {
+	font-weight: 700;
+	font-size: large
+}
+
+.card.svelte-3wbffc .info .desc.svelte-3wbffc {
+	font-size: small;
+	color: #ffffff70
+}
