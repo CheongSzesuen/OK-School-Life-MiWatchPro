@@ -1,5 +1,5 @@
-<div style="text-align: center;">
-  <img src="https://raw.githubusercontent.com/CheongSzesuen/OK-School-Life-MiBandPro/refs/heads/gh-pages/assets/images/icons/icon-v4.png" style="border-radius: 20px; width: 128px;height:"128px">
+<div>
+<img src="https://raw.githubusercontent.com/CheongSzesuen/OK-School-Life-MiBandPro/refs/heads/gh-pages/assets/images/icons/icon-v4.png" alt="icon" style="display: block; margin: auto;border-radius: 20px; width: 128px;height:"128px">
 </div>
 
 ![welcomeImage](https://raw.githubusercontent.com/CheongSzesuen/OK-School-Life-MiBandPro/refs/heads/gh-pages/assets/images/welcomeImages/welcome-v4.png)
@@ -21,7 +21,7 @@ OK School Life是一款用Python开发的校园生活模拟游戏，开发者为
 ## 项目统计
 
 [![项目统计](https://github-readme-stats.vercel.app/api?username=CheongSzesuen&repo=OK-School-Life-MiBandPro&show_icons=true&theme=radical)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro)
-### 仓库概览
+
 ![GitHub Stats](https://github-readme-stats.vercel.app/api/pin/?username=still-alive-hhz&repo=OK-School-Life&show_owner=true)
 
 [![GitHub Stats](https://github-readme-stats.vercel.app/api/pin/?username=CheongSzesuen&repo=OK-School-Life-MiBandPro&show_owner=true)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro)
@@ -38,7 +38,3 @@ OK School Life是一款用Python开发的校园生活模拟游戏，开发者为
 [![Top Language](https://img.shields.io/github/languages/top/CheongSzesuen/OK-School-Life-MiBandPro)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro)
 
 [![Code Size](https://img.shields.io/github/languages/code-size/CheongSzesuen/OK-School-Life-MiBandPro)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro)
-
-
-
-![动态统计](https://github-readme-stats.vercel.app/api?username=CheongSzesuen&repo=OK-School-Life-MiBandPro&show_icons=true&theme=radical&hide_title=true&hide_border=true)
