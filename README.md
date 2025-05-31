@@ -31,7 +31,7 @@ OK School Life是一款用Python开发的校园生活模拟游戏，开发者为
 [![GitHub issues](https://img.shields.io/github/issues/CheongSzesuen/OK-School-Life-MiBandPro)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro/issues)
 
 [![GitHub stars]
-(https://img.shields.io/github/stars/CheongSzesuen/OK-School-Life-MiBandPro?style=social)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro/stargazers)
+(https://github.com/CheongSzesuen/OK-School-Life-MiBandPro/stargazers)
 
 [![GitHub forks](https://img.shields.io/github/forks/CheongSzesuen/OK-School-Life-MiBandPro)](https://github.com/CheongSzesuen/OK-School-Life-MiBandPro/network/members)
 
