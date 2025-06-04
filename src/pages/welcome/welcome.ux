@@ -1,37 +1,42 @@
 <template>
   <div class="container">
+    <!-- 顶部Logo -->
     <image class="logo" src="../../common/assets/icon-v4.png"></image>
     
+    <!-- 标题区域 -->
     <div class="header">
       <text class="title">OK School Life</text>
       <text class="version">beta {{version}}</text>
     </div>
     
+    <!-- 主按钮区域 -->
     <div class="buttons">
-      <div class="btn {{activeBtnIndex === 0 ? 'btn-active' : ''}}" 
-           onclick="startGame" 
-           ontouchstart="setBtnActive(0)" 
-           ontouchend="setBtnInactive(0)">
+      <!-- 开始游戏按钮 -->
+      <div class="btn" onclick="startGame">
         <text class="btn-text">开始游戏</text>
       </div>
       
-      <div class="btn {{activeBtnIndex === 1 ? 'btn-active' : ''}}" 
-           onclick="showAchievements" 
-           ontouchstart="setBtnActive(1)" 
-           ontouchend="setBtnInactive(1)">
+      <!-- 查看成就按钮 
+      <div class="btn" onclick="showAchievements">
         <text class="btn-text">查看成就</text>
-      </div>
+      </div>-->
       
-      <div class="btn {{activeBtnIndex === 2 ? 'btn-active' : ''}}" 
-           onclick="exitGame" 
-           ontouchstart="setBtnActive(2)" 
-           ontouchend="setBtnInactive(2)">
+      <!-- 开发者选项按钮 
+      <div class="btn" onclick="showDeveloper">
+        <text class="btn-text">开发者选项</text>
+      </div>-->
+      
+      <!-- 退出游戏按钮 -->
+      <div class="btn" onclick="exitGame">
         <text class="btn-text">退出游戏</text>
       </div>
     </div>
     
+    <!-- 底部信息 -->
     <div class="footer">
-      <text class="hint">由StillAlive和WaiJade开发，米环软件由WaiJade迁移</text>
+      <text class="hint">由StillAlive和WaiJade开发</text>
+      <text class="hint">米环软件由WaiJade迁移</text>
+      <text class="copyright">© 2024 OK School Life</text>
     </div>
   </div>
 </template>
@@ -42,34 +47,35 @@ import app from '@system.app'
 
 export default {
   private: {
-    version: 'v0.3.10',
-    activeBtnIndex: -1
+    version: 'v0.4.0' // 更新版本号
   },
   
+  // 开始游戏
   startGame() {
     router.push({
-      uri: '/main',
+      uri: 'pages/main',
       params: { newGame: true }
     })
   },
   
+  // 查看成就
   showAchievements() {
-    router.replace({
+    router.push({
       uri: 'pages/achievement',
       params: { showAchievements: true }
     })
   },
   
+  // 开发者选项
+  showDeveloper() {
+    router.push({
+      uri: 'pages/developer'
+    })
+  },
+  
+  // 退出游戏
   exitGame() {
     app.terminate()
-  },
-  
-  setBtnActive(index) {
-    this.activeBtnIndex = index
-  },
-  
-  setBtnInactive() {
-    this.activeBtnIndex = -1
   }
 }
 </script>
@@ -135,19 +141,24 @@ export default {
   font-weight: bold;
 }
 
-.btn-active {
-  background-color: #41b876;
-}
-
 .footer {
   width: 100%;
-  justify-content: center;
-  padding: 10px;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
 }
 
 .hint {
-  font-size: 16px;
+  font-size: 14px;
   color: #666666;
   text-align: center;
+  margin-top: 5px;
+}
+
+.copyright {
+  font-size: 12px;
+  color: #444444;
+  text-align: center;
+  margin-top: 10px;
 }
 </style>

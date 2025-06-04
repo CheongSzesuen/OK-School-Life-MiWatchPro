@@ -1,174 +1,178 @@
 <template>
-  <div class="container">
-    <!-- 顶部图标 -->
-    <image class="logo" src="../../common/assets/icon-v4.png"></image>
-    
-    <!-- 标题区域 -->
-    <div class="header">
-      <text class="title">OK School Life</text>
-      <text class="version">beta {{version}}</text>
+  <div>
+    <div if="{{!loaded}}">
+      <text>加载中...</text>
+      <progress type="circular"></progress>
     </div>
     
-    <!-- 按钮区域 -->
-    <div class="buttons">
-      <div class="btn {{activeBtnIndex === 0 ? 'btn-active' : ''}}" onclick="startGame" ontouchstart="setBtnActive(0)" ontouchend="setBtnInactive(0)">
-        <text class="btn-text">开始游戏</text>
+    <div if="{{loaded}}" class="container">
+      <div class="status-bar">
+        <text class="status-text">分数: {{ score }}</text>
       </div>
       
-      <div class="btn {{activeBtnIndex === 1 ? 'btn-active' : ''}}" onclick="showAchievements" ontouchstart="setBtnActive(1)" ontouchend="setBtnInactive(1)">
-        <text class="btn-text">查看成就</text>
+      <div class="event-container">
+        <text class="event-title">{{ currentEvent?.question || '加载中...' }}</text>
+        
+        <div class="options-container">
+          <block for="(option, index) in options">
+            <input 
+              class="option-button" 
+              type="button" 
+              value="{{ option.text }}"
+              onclick="handleOption(option.key)" 
+            />
+          </block>
+        </div>
+        
+        <text class="result-text" if="{{ result }}">{{ result }}</text>
+        <text class="game-over" if="{{ gameOver }}">游戏结束！得分: {{ score }}</text>
       </div>
-      
-      <div class="btn {{activeBtnIndex === 2 ? 'btn-active' : ''}}" onclick="exitGame" ontouchstart="setBtnActive(2)" ontouchend="setBtnInactive(2)">
-        <text class="btn-text">退出游戏</text>
-      </div>
-    </div>
-    
-    <!-- 底部装饰 -->
-    <div class="footer">
-      <text class="hint">选择你的校园生活之旅</text>
     </div>
   </div>
 </template>
 
 <script>
-import router from '@system.router'
-import app from '@system.app'
-
-export default {
-  private: {
-    version: 'v0.3.10',
-    activeBtnIndex: -1
-  },
+  import router from '@system.router'
+  import storage from '@system.storage'
+  import fetch from '@system.fetch'
+  import prompt from '@system.prompt'
   
-  startGame() {
-    router.push({
-      uri: '/main',
-      params: { newGame: true }
-    })
-  },
-  
-  showAchievements() {
-    router.replace({
-      uri: 'pages/achievement',
-      params: { showAchievements: true }
-    })
-  },
-  
-  exitGame() {
-    app.terminate()
-  },
-  
-  setBtnActive(index) {
-    this.activeBtnIndex = index
-  },
-  
-  setBtnInactive() {
-    this.activeBtnIndex = -1
+  export default {
+    private: {
+      loaded: false,
+      gameOver: false,
+      gamePaused: false,  // 新增暂停状态
+      score: 0,
+      currentEvent: null,
+      options: [],
+      result: '',
+      eventIdx: 0,
+      eventsData: [],
+      school: '1'
+    },
+    
+    onInit() {
+      this.school = router.getParams().school || '1';
+      this.initGame();
+    },
+    
+    onReady() {
+      console.log("页面渲染完成");
+    },
+    
+    onHide() {
+      this.gamePaused = true;
+    },
+    
+    onShow() {
+      if (this.gamePaused) {
+        this.gamePaused = false;
+        this.startEvent();
+      }
+    },
+    
+    async initGame() {
+      try {
+        await this.loadGameData();
+        this.startEvent();
+        this.loaded = true;
+      } catch (error) {
+        console.error("初始化失败:", error);
+        prompt.showToast({ message: '初始化失败' });
+      }
+    },
+    
+    async loadGameData() {
+      try {
+        const response = await fetch.fetch({
+          url: '/common/data/events.json'
+        });
+        
+        if (response.code === 200) {
+          this.eventsData = JSON.parse(response.data);
+        } else {
+          this.useFallbackData();
+        }
+      } catch (e) {
+        console.error("数据加载失败:", e);
+        this.useFallbackData();
+      }
+    },
+    
+    useFallbackData() {
+      this.eventsData = {
+        event_1_list: [
+          {
+            question: "默认事件：遇到老师提问",
+            choices: { A: "举手回答", B: "低头回避" },
+            results: { A: "+1分 勇气可嘉", B: "机会留给别人了" }
+          }
+        ],
+        event_2_list: [],
+        event_3_list: []
+      };
+      prompt.showToast({ message: '使用默认数据' });
+    },
+    
+    startEvent() {
+      if (this.gameOver || !this.eventsData.length) return;
+      
+      const eventList = this.getEventList();
+      if (this.eventIdx >= eventList.length) {
+        this.endGame('恭喜通关！');
+        return;
+      }
+      
+      this.currentEvent = eventList[this.eventIdx];
+      this.setupEvent();
+    },
+    
+    getEventList() {
+      if (!this.eventsData) return [];
+      
+      switch (this.school) {
+        case '1': return this.eventsData.event_1_list || [];
+        case '2': return this.eventsData.event_2_list || [];
+        case '3': return this.eventsData.event_3_list || [];
+        default: return this.eventsData.event_1_list || [];
+      }
+    },
+    
+    setupEvent() {
+      this.result = '';
+      this.options = Object.keys(this.currentEvent.choices || {}).map(key => ({
+        key,
+        text: this.currentEvent.choices[key]
+      }));
+    },
+    
+    handleOption(choice) {
+      if (this.gameOver) return;
+      
+      this.result = this.currentEvent.results?.[choice] || '';
+      this.score += 1;
+      
+      if (this.currentEvent.end_game_choices?.includes(choice)) {
+        this.endGame('游戏结束');
+        return;
+      }
+      
+      setTimeout(() => {
+        this.eventIdx += 1;
+        this.startEvent();
+      }, 0);
+    },
+    
+    endGame(message) {
+      this.gameOver = true;
+      this.result = message;
+      
+      storage.set({
+        key: 'game_score',
+        value: this.score.toString(),
+        success: () => prompt.showToast({ message: '分数保存成功' }),
+        fail: (err) => console.error('保存失败', err)
+      });
+    }
   }
-}
 </script>
-
-<style>
-.container {
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  background-color: #000000;
-  padding: 40px 20px;
-}
-
-.logo {
-  width: 180px;
-  height: 180px;
-  border-radius: 30px;
-  margin-top: 40px;
-  box-shadow: 0 0 20px rgba(9, 186, 7, 0.5);
-  animation: pulse 3s infinite;
-}
-
-.header {
-  flex-direction: column;
-  align-items: center;
-  margin: 30px 0;
-}
-
-.title {
-  font-size: 42px;
-  color: #ffffff;
-  font-weight: bold;
-  text-align: center;
-  letter-spacing: 2px;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-  margin-bottom: 10px;
-}
-
-.version {
-  font-size: 22px;
-  color: #aaaaaa;
-  text-align: center;
-}
-
-.buttons {
-  flex-direction: column;
-  width: 100%;
-  max-width: 400px;
-  margin-bottom: 60px;
-}
-
-.btn {
-  width: 100%;
-  height: 80px;
-  margin-top: 30px;
-  border-radius: 40px;
-  background-color: #09ba07;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.2s;
-  box-shadow: 0 5px 15px rgba(9, 186, 7, 0.3);
-}
-
-.btn-text {
-  color: white;
-  font-size: 28px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.btn-active {
-  background-color: #088a06;
-  transform: translateY(3px);
-  box-shadow: 0 2px 5px rgba(9, 186, 7, 0.2);
-}
-
-.footer {
-  width: 100%;
-  justify-content: center;
-  padding: 20px;
-}
-
-.hint {
-  font-size: 20px;
-  color: #666666;
-  text-align: center;
-  font-style: italic;
-}
-
-/* 呼吸动画 */
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-}
-</style>

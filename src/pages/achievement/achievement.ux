@@ -1,8 +1,12 @@
 <template>
   <div class="achievement-page">
     <div class="header">
-      <div class="back-btn" onclick="click" ontouchmove="backToWelcome" >
-        <text class="back-icon" >←</text>
+      <div class="back-btn" 
+           :class="{'btn-active': activeBtnIndex === 0}"
+           @click="backToWelcome"
+           @touchstart="setBtnActive(0)"
+           @touchend="setBtnInactive">
+        <text class="back-icon">←</text>
       </div>
       <text class="title">成就</text>
     </div>
@@ -178,12 +182,6 @@ export default {
     padding: 40px 0;
   }
 
-  .empty-icon {
-    font-size: 50px;
-    margin-bottom: 20px;
-    color: #555566;
-  }
-
   .empty-text {
     font-size: 28px;
     color: #888899;
@@ -217,88 +215,4 @@ export default {
     color: #FF5555;
     font-weight: bold;
   }
-</style>
-  
-  setBtnInactive() {
-    this.activeBtnIndex = -1
-  }
-}
-</script>
-
-<style>
-.container {
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  background-color: #000000;
-  padding: 20px 10px;
-}
-
-.logo {
-  width: 120px;
-  height: 120px;
-  border-radius: 20px;
-  margin-top: 20px;
-}
-
-.header {
-  flex-direction: column;
-  align-items: center;
-  margin: 15px 0;
-}
-
-.title {
-  font-size: 32px;
-  color: #ffffff;
-  font-weight: bold;
-  text-align: center;
-  margin-bottom: 5px;
-}
-
-.version {
-  font-size: 18px;
-  color: #aaaaaa;
-  text-align: center;
-}
-
-.buttons {
-  flex-direction: column;
-  width: 100%;
-  max-width: 300px;
-  margin-bottom: 30px;
-}
-
-.btn {
-  width: 100%;
-  height: 60px;
-  margin-top: 20px;
-  border-radius: 20px;
-  background-color: #41b876;
-  justify-content: center;
-  align-items: center;
-}
-
-.btn-text {
-  color: white;
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.btn-active {
-  background-color: #41b876;
-}
-
-.footer {
-  width: 100%;
-  justify-content: center;
-  padding: 10px;
-}
-
-.hint {
-  font-size: 16px;
-  color: #666666;
-  text-align: center;
-}
 </style>

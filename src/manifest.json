@@ -1,43 +1,51 @@
 {
-  "package": "com.application.watch.demo",
+  "package": "com.WaiJade.OKSchoolLife.demo",
   "name": "Ok School Life",
   "versionName": "0.0.1-45",
   "versionCode": 1,
   "minPlatformVersion": 1000,
   "icon": "/common/assets/icon-v4.png",
-  "deviceTypeList": [
-    "watch"
-  ],
+  "deviceTypeList": ["watch"],
   "features": [
-    {
-      "name": "system.router"
-    }
+    {"name": "system.router"},
+    {"name": "system.storage"},
+    {"name": "system.request"},
+  { "name": "system.fetch" },
+    {"name": "system.file"}
   ],
   "config": {
     "logLevel": "log",
     "designWidth": 480,
-    "designHeight":336
+    "designHeight": 336
   },
-  "router": {
+  "permissions": [ 
+  {"name": "system.storage"},
+  {"name": "system.request"},
+  {"name": "system.file"}
+],
+"resources": {
+    "files": [
+      "$src/common/data/events.json"
+    ]
+  },
+"router": {
     "entry": "pages/index",
     "pages": {
       "pages/index": {
         "component": "index"
       },
       "pages/developer": {
-      "component": "developer"
-    },
-    "pages/welcome": {
-      "component": "welcome"
-    },
-    "pages/main": {
-      "component": "main"
-    },
-    "pages/achievement": {
-      "component": "achievement"
-    }
-    
-    
+        "component": "developer"
+      },
+      "pages/welcome": {
+        "component": "welcome"
+      },
+      "pages/main": {
+        "component": "main"
+      },
+      "pages/achievement": {
+        "component": "achievement"
+      }
     }
   }
 }
