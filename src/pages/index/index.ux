@@ -2,7 +2,6 @@
   <div class="WelcomePage">
     <image class="icon" src="../../common/assets/icon-v4.png"></image>
     
-    <!-- 游戏名称容器 -->
     <div class="game-name-container">
       <text class="GameName">{{ GameName }}</text>
     </div>
@@ -16,22 +15,20 @@ import router from "@system.router"
 
 export default {
   onInit() {
-    // 页面初始化时启动定时器
     setTimeout(() => {
       router.replace({
         uri: 'pages/welcome' 
       })
-    }, 1500)  // 缩短等待时间至2.5秒
+    }, 1500)  
   },
 
   private: {
-    GameName: "Ok School Life"  // 简化变量名
+    GameName: "Ok School Life"  
   }
 }
 </script>
 
 <style>
-/* 主容器样式 */
 .WelcomePage {
   flex-direction: column;
   justify-content: center;
@@ -42,30 +39,26 @@ export default {
   padding: 20px;
 }
 
-/* 图标样式 */
 .icon {
-  width: 200px; /* 适当缩小图标 */
+  width: 200px; 
   height: 200px;
   border-radius: 30px; 
   margin-bottom: 40px; 
 }
 
-/* 游戏名称容器 - 确保名称不会超出屏幕 */
 .game-name-container {
-  max-width: 100%; /* 不超过父容器宽度 */
-  padding: 0 15px; /* 添加内边距防止边缘截断 */
+  max-width: 100%; 
+  padding: 0 15px; 
   margin-top: 20px;
   margin-bottom: 40px;
 }
 
-/* 游戏名称样式 */
 .GameName {
-  font-size: 38px; /* 适当减小字体大小 */
+  font-size: 38px; 
   text-align: center;
   color: #ffffff; 
   font-weight: bold;
-  letter-spacing: 1px; /* 减小字间距 */
-  /* 确保文本自动换行 */
+  letter-spacing: 1px; 
   word-wrap: break-word;
   white-space: normal;
 }
@@ -77,7 +70,6 @@ export default {
   margin-top: 30px;
 }
 
-/* 闪烁动画 */
 @keyframes blink {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
