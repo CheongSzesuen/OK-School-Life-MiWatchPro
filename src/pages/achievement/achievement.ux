@@ -1,18 +1,12 @@
 <template>
   <div class="achievement-page">
-    <!-- 顶部导航栏 -->
     <div class="header">
-      <div class="back-btn" 
-           :class="{'btn-active': activeBtnIndex === 0}" 
-           @click="backToWelcome"
-           @touchstart="setBtnActive(0)"
-           @touchend="setBtnInactive">
-        <text class="back-icon">←</text>
+      <div class="back-btn" onclick="click" ontouchmove="backToWelcome" >
+        <text class="back-icon" >←</text>
       </div>
       <text class="title">成就</text>
     </div>
-    
-    <!-- 内容区域 -->
+  
     <div class="content">
       <div class="achievements-section" if="{{achievements.length > 0}}">
         <div class="achievements-list">
@@ -31,7 +25,6 @@
       </div>
     </div>
     
-    <!-- 底部按钮 -->
     <div class="footer">
       <div class="btn clear-btn" 
            :class="{'btn-active': activeBtnIndex === 1}" 
@@ -51,11 +44,8 @@ import prompt from '@system.prompt'
 export default {
   private: {
     achievements: [
-      "新生入学 - 完成新手引导",
-      "第一堂课 - 完成第一节课",
-      "校园探索者 - 探索所有校园场景",
-      "优秀学生 - 连续7天登录",
-      "全勤奖 - 一个月内无缺席"
+      "1",
+      "2"
     ],
     activeBtnIndex: -1
   },

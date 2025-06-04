@@ -21,7 +21,7 @@ export default {
       router.replace({
         uri: 'pages/welcome' 
       })
-    }, 2500)  // 缩短等待时间至2.5秒
+    }, 1500)  // 缩短等待时间至2.5秒
   },
 
   private: {
