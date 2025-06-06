@@ -1,32 +1,23 @@
 <template>
-  <div>
-    <div if="{{!loaded}}">
-      <text>加载中...</text>
-      <progress type="circular"></progress>
-    </div>
-    
-    <div if="{{loaded}}" class="container">
-      <div class="status-bar">
-        <text class="status-text">分数: {{ score }}</text>
+  <div class="container">
+    <div class="content">
+      <text class="question">{{currentQuestion}}</text>
+      
+      <div class="buttons">
+        <block for="(option, index) in options">
+          <!-- 修复事件绑定：使用data-key传递参数 -->
+          <div class="btn" onclick="handleOption" data-key="{{option.key}}">
+            <text class="btn-text">{{option?.text || '加载中...'}}</text>
+          </div>
+        </block>
+        <text if="!options || options.length === 0" class="error-hint">暂无有效选项</text>
       </div>
       
-      <div class="event-container">
-        <text class="event-title">{{ currentEvent?.question || '加载中...' }}</text>
-        
-        <div class="options-container">
-          <block for="(option, index) in options">
-            <input 
-              class="option-button" 
-              type="button" 
-              value="{{ option.text }}"
-              onclick="handleOption(option.key)" 
-            />
-          </block>
-        </div>
-        
-        <text class="result-text" if="{{ result }}">{{ result }}</text>
-        <text class="game-over" if="{{ gameOver }}">游戏结束！得分: {{ score }}</text>
-      </div>
+      <text class="result" if="{{resultText}}">{{resultText}}</text>
+    </div>
+    
+    <div class="footer">
+      <text class="hint">当前分数: {{score}}</text>
     </div>
   </div>
 </template>
@@ -34,145 +25,414 @@
 <script>
   import router from '@system.router'
   import storage from '@system.storage'
-  import fetch from '@system.fetch'
   import prompt from '@system.prompt'
-  
+
+  // 完整事件数据
+  const eventsData = {
+    "metadata": {
+      "start_options": [
+        "你在一个富裕家庭",
+        "你在一个普通家庭",
+        "你在一个贫穷家庭"
+      ]
+    },
+    "events": {
+      "fixed_events": {
+        "group_1": [
+          {
+            "question": "你出生在一个富裕家庭，父母希望你：",
+            "choices": {
+              "1": "继承家族企业",
+              "2": "成为政府官员",
+              "3": "追求艺术梦想"
+            },
+            "results": {
+              "1": "你接受了商业教育，但感到压力很大。",
+              "2": "你开始准备公务员考试，但觉得枯燥。",
+              "3": "父母虽然失望但仍支持你，给你报了艺术班。"
+            }
+          }
+        ],
+        "group_2": [
+          {
+            "question": "普通家庭的父母希望你能：",
+            "choices": {
+              "1": "考上重点大学",
+              "2": "学习实用技能",
+              "3": "早点工作补贴家用"
+            },
+            "results": {
+              "1": "你开始为高考努力。",
+              "2": "你报名了编程培训班。",
+              "3": "你周末开始打工，但成绩下滑。"
+            }
+          }
+        ],
+        "group_3": [
+          {
+            "question": "贫穷家庭的你面临学费问题，你会：",
+            "choices": {
+              "1": "申请助学金",
+              "2": "半工半读",
+              "3": "放弃学业"
+            },
+            "results": {
+              "1": "你成功申请到助学金，专心学习。",
+              "2": "你每天打工4小时，精力不足。",
+              "3": "你辍学打工，但后悔没完成学业。"
+            }
+          }
+        ]
+      },
+      "random_events": [
+        {
+          "question": "校园传奇浴室，看到一群烟哥在吸烟，你会？",
+          "choices": {
+            "1": "私下向校长举报",
+            "2": "直接开骂",
+            "3": "微笑着说：我也来一根",
+            "4": "无视"
+          },
+          "results": {
+            "1": "你选择了私下向校长举报。校长高度赞赏你的行为，并在大会上让你上台领奖。",
+            "2": "你选择了直接开骂。烟哥一人一根烟头把你烫得进医院了！",
+            "3": "你选择了微笑着说：我也来一根。你们一起吸烟，被老师发现了，心情很不好。",
+            "4": "你选择了无视。好像什么也没有发生。"
+          }
+        }
+      ]
+    }
+  };
+
   export default {
     private: {
-      loaded: false,
-      gameOver: false,
-      gamePaused: false,  // 新增暂停状态
-      score: 0,
-      currentEvent: null,
+      currentQuestion: '加载中...',
       options: [],
-      result: '',
-      eventIdx: 0,
-      eventsData: [],
-      school: '1'
+      resultText: '',
+      score: 0,
+      nextStage: '', // 添加nextStage状态
+      eventsData: eventsData,
+      gameState: {
+        stage: 'choose_family',
+        family: null,
+        eventGroup: null,
+        eventIdx: 0,
+        usedEvents: []
+      }
     },
     
     onInit() {
-      this.school = router.getParams().school || '1';
-      this.initGame();
+      this.loadGameData()
     },
     
-    onReady() {
-      console.log("页面渲染完成");
-    },
-    
-    onHide() {
-      this.gamePaused = true;
-    },
-    
-    onShow() {
-      if (this.gamePaused) {
-        this.gamePaused = false;
-        this.startEvent();
-      }
-    },
-    
-    async initGame() {
-      try {
-        await this.loadGameData();
-        this.startEvent();
-        this.loaded = true;
-      } catch (error) {
-        console.error("初始化失败:", error);
-        prompt.showToast({ message: '初始化失败' });
-      }
-    },
-    
-    async loadGameData() {
-      try {
-        const response = await fetch.fetch({
-          url: '/common/data/events.json'
-        });
-        
-        if (response.code === 200) {
-          this.eventsData = JSON.parse(response.data);
-        } else {
-          this.useFallbackData();
-        }
-      } catch (e) {
-        console.error("数据加载失败:", e);
-        this.useFallbackData();
-      }
-    },
-    
-    useFallbackData() {
-      this.eventsData = {
-        event_1_list: [
-          {
-            question: "默认事件：遇到老师提问",
-            choices: { A: "举手回答", B: "低头回避" },
-            results: { A: "+1分 勇气可嘉", B: "机会留给别人了" }
+    loadGameData() {
+      storage.get({
+        key: 'game_state',
+        success: (data) => {
+          if (data) {
+            try {
+              const savedData = JSON.parse(data)
+              this.gameState = {
+                ...this.gameState,
+                ...savedData,
+                usedEvents: savedData.usedEvents || []
+              }
+              this.score = savedData.score || 0
+            } catch (e) {
+              prompt.showToast({ message: '存档损坏，已重置游戏' })
+            }
           }
-        ],
-        event_2_list: [],
-        event_3_list: []
-      };
-      prompt.showToast({ message: '使用默认数据' });
+          this.startGame()
+        },
+        fail: () => {
+          this.startGame()
+        }
+      })
     },
     
-    startEvent() {
-      if (this.gameOver || !this.eventsData.length) return;
+    startGame() {
+      this.showMessage(
+        "欢迎来到OK School Life！\n请选择你的家庭背景：",
+        this.eventsData.metadata.start_options.map((text, index) => ({
+          key: String(index + 1),
+          text: text
+        })),
+        'choose_family'
+      )
+    },
+    
+    // 修复事件处理函数
+    handleOption(evt) {
+      const key = evt.target.dataset.key;
+      if (!key) return;
       
-      const eventList = this.getEventList();
-      if (this.eventIdx >= eventList.length) {
-        this.endGame('恭喜通关！');
-        return;
+      switch(this.gameState.stage) {
+        case 'choose_family':
+          this.handleFamilyChoice(key);
+          break;
+        case 'family_event':
+          this.handleFamilyEventChoice(key);
+          break;
+        case 'random_event':
+          this.handleRandomEventChoice(key);
+          break;
+        case 'game_over':
+          if (key === 'restart') this.resetGame();
+          break;
       }
       
-      this.currentEvent = eventList[this.eventIdx];
-      this.setupEvent();
+      this.saveGameData();
     },
     
-    getEventList() {
-      if (!this.eventsData) return [];
+    handleFamilyChoice(key) {
+      this.gameState.family = key
+      this.gameState.stage = 'choose_event_group'
       
-      switch (this.school) {
-        case '1': return this.eventsData.event_1_list || [];
-        case '2': return this.eventsData.event_2_list || [];
-        case '3': return this.eventsData.event_3_list || [];
-        default: return this.eventsData.event_1_list || [];
+      const groups = Object.keys(this.eventsData.events.fixed_events)
+      const randomGroup = groups[Math.floor(Math.random() * groups.length)]
+      this.gameState.eventGroup = randomGroup
+      
+      this.showFamilyEvent()
+    },
+    
+    showFamilyEvent() {
+      const groupKey = this.gameState.eventGroup
+      const events = this.eventsData.events.fixed_events[groupKey]
+      const event = events[this.gameState.eventIdx]
+      
+      if (!event) {
+        this.gameState.stage = 'random_event'
+        this.showRandomEvent()
+        return
+      }
+
+      this.showEvent(
+        event.question,
+        event.choices,
+        'family_event',
+        event.results
+      )
+    },
+    
+    handleFamilyEventChoice(key) {
+      const groupKey = this.gameState.eventGroup
+      const events = this.eventsData.events.fixed_events[groupKey]
+      const event = events[this.gameState.eventIdx]
+      
+      if (!event) return;
+      
+      this.processChoiceResult(key, event)
+      
+      this.gameState.eventIdx++
+      if (this.gameState.eventIdx >= events.length) {
+        this.gameState.stage = 'random_event'
+        this.showRandomEvent()
       }
     },
     
-    setupEvent() {
-      this.result = '';
-      this.options = Object.keys(this.currentEvent.choices || {}).map(key => ({
-        key,
-        text: this.currentEvent.choices[key]
-      }));
-    },
-    
-    handleOption(choice) {
-      if (this.gameOver) return;
+    showRandomEvent() {
+      const availableEvents = this.eventsData.events.random_events.filter(
+        (_, index) => !this.gameState.usedEvents.includes(index)
+      )
       
-      this.result = this.currentEvent.results?.[choice] || '';
-      this.score += 1;
-      
-      if (this.currentEvent.end_game_choices?.includes(choice)) {
-        this.endGame('游戏结束');
-        return;
+      if (availableEvents.length === 0) {
+        this.showMessage(
+          "所有事件已完成！\n最终得分：" + this.score,
+          [{ key: 'restart', text: '重新开始' }],
+          'game_over'
+        )
+        return
       }
       
+      const randomIndex = Math.floor(Math.random() * availableEvents.length)
+      const event = availableEvents[randomIndex]
+      this.gameState.usedEvents.push(
+        this.eventsData.events.random_events.indexOf(event)
+      )
+      
+      this.showEvent(
+        event.question,
+        event.choices,
+        'random_event',
+        event.results
+      )
+    },
+    
+    handleRandomEventChoice(key) {
+      const lastIndex = this.gameState.usedEvents[this.gameState.usedEvents.length - 1]
+      const event = this.eventsData.events.random_events[lastIndex]
+      this.processChoiceResult(key, event)
+    },
+    
+    showEvent(question, choices, nextStage, results) {
+      this.currentQuestion = question || '未知问题'
+      
+      this.options = []
+      if (choices && typeof choices === 'object') {
+        this.options = Object.keys(choices).map(key => ({
+          key: String(key),
+          text: choices[key] || `选项${key}`
+        }))
+      }
+
+      this.nextStage = nextStage || 'family_event' // 存储下一阶段
+      this.gameState.currentResults = results || {}
+      this.resultText = ''
+    },
+    
+    processChoiceResult(key, event) {
+      if (!event?.results) return;
+
+      let result = '';
+      if (typeof event.results[key] === 'string') {
+        result = event.results[key]
+      } 
+      
+      this.score += 1
+      this.resultText = result
+      
+      // 1秒后根据nextStage加载下一问题
       setTimeout(() => {
-        this.eventIdx += 1;
-        this.startEvent();
-      }, 0);
+        if (this.nextStage === 'family_event') {
+          this.showFamilyEvent()
+        } else if (this.nextStage === 'random_event') {
+          this.showRandomEvent()
+        }
+      }, 1000)
     },
     
-    endGame(message) {
-      this.gameOver = true;
-      this.result = message;
+    showMessage(message, options, nextStage) {
+      this.currentQuestion = message || ''
+      
+      this.options = Array.isArray(options) 
+        ? options.map(opt => ({
+            key: String(opt.key || 'default'),
+            text: opt.text || '继续'
+          }))
+        : [{ key: 'continue', text: '继续' }]
+
+      this.gameState.stage = nextStage || 'choose_family'
+      this.resultText = ''
+    },
+    
+    resetGame() {
+      this.gameState = {
+        stage: 'choose_family',
+        family: null,
+        eventGroup: null,
+        eventIdx: 0,
+        usedEvents: []
+      }
+      this.score = 0
+      this.startGame()
+    },
+    
+    saveGameData() {
+      const saveData = {
+        ...this.gameState,
+        score: this.score
+      }
       
       storage.set({
-        key: 'game_score',
-        value: this.score.toString(),
-        success: () => prompt.showToast({ message: '分数保存成功' }),
-        fail: (err) => console.error('保存失败', err)
-      });
+        key: 'game_state',
+        value: JSON.stringify(saveData)
+      })
+    },
+    
+    // 按钮触摸反馈
+    handleTouchStart() {
+      this.activeBtn = true
+    },
+    handleTouchEnd() {
+      this.activeBtn = false
     }
   }
 </script>
+
+<style>
+  .container {
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    background-color: #000000;
+    padding: 10px;
+  }
+  
+  .content {
+    flex: 1;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    padding-top: 20px;
+  }
+  
+  .question {
+    font-size: 22px;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 0 20px;
+    line-height: 32px;
+  }
+  
+  .buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 30px;
+  }
+  
+  .btn {
+    width: 100%;
+    height: 60px;
+    margin-top: 20px;
+    border-radius: 20px;
+    background-color: #41b876;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s;
+  }
+  
+  /* 移除不支持的:active伪类，改用JS控制 */
+  .active-btn {
+    background-color: #2e8b57;
+  }
+  
+  .btn-text {
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+  }
+  
+  .error-hint {
+    color: #ff0000;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 18px;
+  }
+  
+  .result {
+    font-size: 20px;
+    color: #ffffff;
+    margin-top: 30px;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 28px;
+    min-height: 100px;
+  }
+  
+  .footer {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  }
+  
+  .hint {
+    font-size: 16px;
+    color: #666666;
+    text-align: center;
+  }
+</style>

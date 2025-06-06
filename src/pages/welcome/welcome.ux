@@ -16,15 +16,19 @@
         <text class="btn-text">开始游戏</text>
       </div>
       
-      <!-- 查看成就按钮 
+     
       <div class="btn" onclick="showAchievements">
-        <text class="btn-text">查看成就</text>
-      </div>-->
+        <text class="btn-text">查看成就(测试)</text>
+      </div>
       
-      <!-- 开发者选项按钮 
+      
       <div class="btn" onclick="showDeveloper">
-        <text class="btn-text">开发者选项</text>
-      </div>-->
+        <text class="btn-text">开发者(测试)</text>
+      </div>
+
+      <div class="btn" onclick="showDeveloper">
+        <text class="btn-text">设置(测试)</text>
+      </div>
       
       <!-- 退出游戏按钮 -->
       <div class="btn" onclick="exitGame">

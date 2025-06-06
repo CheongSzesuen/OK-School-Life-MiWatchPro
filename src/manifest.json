@@ -11,7 +11,8 @@
     {"name": "system.storage"},
     {"name": "system.request"},
   { "name": "system.fetch" },
-    {"name": "system.file"}
+    {"name": "system.file"},
+    {"name": "system.prompt"} 
   ],
   "config": {
     "logLevel": "log",
@@ -19,9 +20,11 @@
     "designHeight": 336
   },
   "permissions": [ 
-  {"name": "system.storage"},
-  {"name": "system.request"},
-  {"name": "system.file"}
+    {"name": "system.storage"},
+    {"name": "system.request"},
+    {"name": "system.file"},
+    {"name": "ACCESS_NETWORK_STATE"},
+    {"name": "system.prompt"}
 ],
 "resources": {
     "files": [
