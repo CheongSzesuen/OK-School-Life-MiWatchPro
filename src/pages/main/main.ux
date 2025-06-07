@@ -1,20 +1,32 @@
 <template>
   <div class="container">
-    <text class="question" if="{{currentQuestion}}">{{currentQuestion}}</text>
-    <div class="buttons" if="{{showOptions}}">
-      <block for="{{options}}">
-        <div class="btn" onClick="onOptionClick($item.key)">
-          <text class="btn-text">{{$item.text}}</text>
-        </div>
-      </block>
-      <text if="!options || options.length === 0" class="error-hint">暂无有效选项</text>
-    </div>
-    <div class="result-area" if="{{showResult}}">
-      <text class="result">{{resultText}}</text>
-      <text class="achievement" if="{{achievementText}}">{{achievementText}}</text>
-      <div class="btn" onClick="onContinue">
-        <text class="btn-text">继续</text>
+    <div class="spacer"></div>
+    <div class="main-area">
+      <text class="question" if="{{currentQuestion}}">{{currentQuestion}}</text>
+      <div class="buttons" if="{{showOptions}}">
+        <block for="{{options}}">
+          <div class="btn {{btnPressedIdx === $idx ? 'btn-pressed' : ''}}"
+               onTouchStart="onBtnTouchStart($idx)"
+               onTouchEnd="onBtnTouchEnd"
+               onClick="onOptionClick($item.key)">
+            <text class="btn-text">{{$item.text}}</text>
+          </div>
+        </block>
+        <text if="!options || options.length === 0" class="error-hint">暂无有效选项</text>
       </div>
+      <div class="result-area" if="{{showResult}}">
+        <text class="result">{{resultText}}</text>
+        <text class="achievement" if="{{achievementText}}">{{achievementText}}</text>
+        <div class="btn {{btnPressedIdx === -2 ? 'btn-pressed' : ''}}"
+             onTouchStart="onBtnTouchStart(-2)"
+             onTouchEnd="onBtnTouchEnd"
+             onClick="onContinue">
+          <text class="btn-text">继续</text>
+        </div>
+      </div>
+    </div>
+    <div class="footer-area">
+      <text class="footer-copyright">© 2024 WaiJade & StillAlive</text>
     </div>
   </div>
 </template>
@@ -29,7 +41,7 @@ export default {
     achievementText: '',
     showOptions: true,
     showResult: false,
-    // 这里替换为你的完整JSON内容即可
+    // 这里填入你的 JSON 数据
     eventsData: {
     "metadata": {
       "contributors": {
@@ -1187,10 +1199,7 @@ export default {
     stage: 'choose_school',
     currentEvent: null,
     currentRandomIdx: -1,
-    debug: {
-      jsonLoaded: false,
-      errorMsg: '',
-    }
+    btnPressedIdx: -1,
   },
 
   onInit() {
@@ -1213,11 +1222,9 @@ export default {
     this.resultText = ''
     this.achievementText = ''
     this.currentEvent = null
-    console.log('[DEBUG] showChooseSchool options:', this.options)
   },
 
   onOptionClick(key) {
-    console.log('[DEBUG] onOptionClick key:', key, 'stage:', this.stage)
     if (this.stage === 'choose_school') {
       const groupMap = { '1': 'group_1', '2': 'group_2', '3': 'group_3' }
       this.groupKey = groupMap[key]
@@ -1232,13 +1239,9 @@ export default {
   },
 
   showFixedEvent() {
-    if (!this.eventsData || !this.eventsData.events || !this.eventsData.events.fixed_events) {
-      this.debug.errorMsg = 'fixed_events结构无效'
-      this.options = []
-      this.showOptions = false
-      return
-    }
-    const group = this.eventsData.events.fixed_events[this.groupKey] || []
+    const group = (this.eventsData.events && this.eventsData.events.fixed_events)
+      ? this.eventsData.events.fixed_events[this.groupKey] || []
+      : []
     if (this.eventIdx < group.length) {
       const event = group[this.eventIdx]
       this.currentEvent = event
@@ -1259,12 +1262,12 @@ export default {
   handleFixedChoice(key) {
     const event = this.currentEvent
     this.resultText = event.results[key] || ''
-    this.achievementText = event.achievements && event.achievements[key] ? '获得成就：' + event.achievements[key] : ''
+    this.achievementText = (event.achievements && event.achievements[key])
+      ? '获得成就：' + event.achievements[key] : ''
     this.showOptions = false
     this.showResult = true
     if (event.end_game_choices && event.end_game_choices.includes(key)) {
       this.stage = 'end'
-      console.log('[DEBUG] game end at fixed event')
     }
   },
 
@@ -1283,13 +1286,7 @@ export default {
   },
 
   showRandomEvent() {
-    if (!this.eventsData || !this.eventsData.events || !this.eventsData.events.random_events) {
-      this.debug.errorMsg = 'random_events结构无效'
-      this.options = []
-      this.showOptions = false
-      return
-    }
-    const allRandom = this.eventsData.events.random_events
+    const allRandom = (this.eventsData.events && this.eventsData.events.random_events) || []
     const available = allRandom.filter((e, idx) => this.usedRandomEvents.indexOf(idx) === -1)
     if (available.length === 0) {
       this.currentQuestion = ''
@@ -1317,7 +1314,6 @@ export default {
   handleRandomChoice(key) {
     const event = this.currentEvent
     let result = ''
-    // 支持概率型
     if (Array.isArray(event.results[key])) {
       let sum = 0, rand = Math.random()
       for (const item of event.results[key]) {
@@ -1332,14 +1328,21 @@ export default {
       result = event.results[key] || ''
     }
     this.resultText = result
-    this.achievementText = event.achievements && event.achievements[key] ? '获得成就：' + event.achievements[key] : ''
+    this.achievementText = (event.achievements && event.achievements[key])
+      ? '获得成就：' + event.achievements[key] : ''
     this.showOptions = false
     this.showResult = true
     this.usedRandomEvents.push(this.currentRandomIdx)
     if (event.end_game_choices && event.end_game_choices.includes(key)) {
       this.stage = 'end'
-      console.log('[DEBUG] game end at random event')
     }
+  },
+
+  onBtnTouchStart(idx) {
+    this.btnPressedIdx = idx
+  },
+  onBtnTouchEnd() {
+    this.btnPressedIdx = -1
   }
 }
 </script>
@@ -1348,62 +1351,129 @@ export default {
 .container {
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  min-width: 336px;
+  min-height: 480px;
+  background-color: #222; /* 深色背景 */
+  padding: 0;
+}
+
+.spacer {
+  height: 12px;
+  width: 100%;
+}
+
+.main-area {
+  flex-direction: column;
+  align-items: center;
   width: 100%;
   max-width: 336px;
-  min-height: 480px;
-  background-color: #000000;
-  padding: 10px;
-  margin: 0 auto;
+  border-radius: 18px;
+  padding: 0 8px 0 8px;
+  flex-grow: 1;
+  justify-content: flex-start;
 }
+
 .question {
-  font-size: 20px;
-  color: #fff;
+  font-size: 22px;
+  color: #ffe28a;
   text-align: center;
-  margin: 18px 0 14px 0;
+  margin: 16px 0 18px 0;
   padding: 0 6px;
   line-height: 28px;
 }
+
 .buttons {
   flex-direction: column;
   width: 100%;
-  max-width: 280px;
+  max-width: 300px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: flex-start;
 }
+
 .btn {
-  width: 100%;
-  height: 44px;
-  margin-top: 13px;
-  border-radius: 14px;
-  background-color: #41b876;
+  width: 95%;
+  height: 48px;
+  margin-top: 15px;
+  border-radius: 15px;
+  background-color: #41b876; /* 纯绿色 */
+  box-shadow: 0 2px 8px 0 rgba(65,184,118,0.10);
   justify-content: center;
   align-items: center;
+  display: flex;
 }
+
+.btn-pressed {
+  background-color: #239473; /* 深绿色 */
+}
+
 .btn-text {
   color: #fff;
   font-size: 18px;
   font-weight: bold;
-}
-.error-hint {
-  color: #ff0000;
+  letter-spacing: 1.5px;
   text-align: center;
-  margin-top: 10px;
-  font-size: 14px;
-}
-.result-area {
-  margin-top: 16px;
-  align-items: center;
   width: 100%;
 }
+
+.error-hint {
+  color: #ff5e5e;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 15px;
+  letter-spacing: 1px;
+}
+
+.result-area {
+  margin-top: 18px;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 6px;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .result {
-  font-size: 18px;
-  color: #fff;
+  font-size: 19px;
+  color: #fecd1a;
   text-align: center;
   padding: 0 10px;
-  margin-bottom: 10px;
+  margin-bottom: 9px;
+  line-height: 26px;
+  word-break: break-all;
 }
+
 .achievement {
-  font-size: 16px;
-  color: #ffe066;
+  font-size: 17px;
+  color: #15e4b8;
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  line-height: 22px;
+}
+
+.footer-area {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 6px;
+  margin-top: 10px;
+}
+
+.footer-hint {
+  font-size: 14px;
+  color: #666666;
+  text-align: center;
+}
+
+.footer-copyright {
+  font-size: 12px;
+  color: #444444;
+  text-align: center;
+  margin-top: 4px;
 }
 </style>
