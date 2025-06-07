@@ -4,13 +4,13 @@
   "versionName": "0.0.1-45",
   "versionCode": 1,
   "minPlatformVersion": 1000,
-  "icon": "/common/assets/icon-v4.png",
+  "icon": "/common/assets/icon/icon-v4.png",
   "deviceTypeList": ["watch"],
   "features": [
     {"name": "system.router"},
     {"name": "system.storage"},
     {"name": "system.request"},
-  { "name": "system.fetch" },
+    {"name": "system.fetch" },
     {"name": "system.file"},
     {"name": "system.prompt"} 
   ],
@@ -32,10 +32,10 @@
     ]
   },
 "router": {
-    "entry": "pages/index",
+    "entry": "pages/load",
     "pages": {
-      "pages/index": {
-        "component": "index"
+      "pages/load": {
+        "component": "load"
       },
       "pages/developer": {
         "component": "developer"

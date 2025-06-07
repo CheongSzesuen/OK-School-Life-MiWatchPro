@@ -1,6 +1,6 @@
 <template>
   <div class="WelcomePage">
-    <image class="icon" src="../../common/assets/icon-v4.png"></image>
+    <image class="icon" src="../../common/assets/icon/icon-v4.png"></image>
     
     <div class="game-name-container">
       <text class="GameName">{{ GameName }}</text>
@@ -17,7 +17,7 @@ export default {
   onInit() {
     setTimeout(() => {
       router.replace({
-        uri: 'pages/welcome' 
+        uri: 'pages/load' 
       })
     }, 1500)  
   },
@@ -74,4 +74,6 @@ export default {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+
 </style>

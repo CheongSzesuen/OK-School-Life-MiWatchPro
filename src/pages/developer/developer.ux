@@ -13,7 +13,6 @@
       </div>
     </div>
     
-    <!-- 贡献者区域 - 使用marquee实现滚动效果 -->
     <div class="section">
       <text class="section-title">贡献者</text>
       
@@ -25,7 +24,6 @@
       </marquee>
     </div>
     
-    <!-- 进入游戏按钮 -->
     <div class="footer">
       <input class="enter-btn" type="button" value="进入游戏" onclick="enterGame" />
     </div>
@@ -66,13 +64,12 @@ export default {
     border-radius: 15px;
   }
 
-  /* 左上角标题样式 */
   .section-title {
     font-size: 32px;
     color: #4FC3F7;
     font-weight: bold;
     margin-bottom: 20px;
-    align-self: flex-start; /* 左上角对齐 */
+    align-self: flex-start; 
   }
 
   .author-container {

@@ -1,17 +1,13 @@
 <template>
   <div class="container">
-    <!-- 顶部Logo -->
-    <image class="logo" src="../../common/assets/icon-v4.png"></image>
+    <image class="logo" src="../../common/assets/icon/icon-v4.png"></image>
     
-    <!-- 标题区域 -->
     <div class="header">
       <text class="title">OK School Life</text>
       <text class="version">beta {{version}}</text>
     </div>
     
-    <!-- 主按钮区域 -->
     <div class="buttons">
-      <!-- 开始游戏按钮 -->
       <div class="btn" onclick="startGame">
         <text class="btn-text">开始游戏</text>
       </div>
@@ -30,13 +26,11 @@
         <text class="btn-text">设置(测试)</text>
       </div>
       
-      <!-- 退出游戏按钮 -->
       <div class="btn" onclick="exitGame">
         <text class="btn-text">退出游戏</text>
       </div>
     </div>
     
-    <!-- 底部信息 -->
     <div class="footer">
       <text class="hint">由StillAlive和WaiJade开发</text>
       <text class="hint">米环软件由WaiJade迁移</text>
@@ -51,10 +45,9 @@ import app from '@system.app'
 
 export default {
   private: {
-    version: 'v0.4.0' // 更新版本号
+    version: 'v0.4.0' 
   },
   
-  // 开始游戏
   startGame() {
     router.push({
       uri: 'pages/main',
@@ -62,7 +55,6 @@ export default {
     })
   },
   
-  // 查看成就
   showAchievements() {
     router.push({
       uri: 'pages/achievement',
@@ -70,14 +62,12 @@ export default {
     })
   },
   
-  // 开发者选项
   showDeveloper() {
     router.push({
       uri: 'pages/developer'
     })
   },
   
-  // 退出游戏
   exitGame() {
     app.terminate()
   }
