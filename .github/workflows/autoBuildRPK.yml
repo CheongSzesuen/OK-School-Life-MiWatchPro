@@ -120,22 +120,22 @@ jobs:
           # 构建时间（UTC+8）
           echo "time=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
-      # 9. 创建增强版GitHub Release
-      - name: Create Enhanced Release
-        uses: softprops/action-gh-release@v1
+            # 9. 创建增强版GitHub Release (Create Enhanced Release)
+      - name: 创建增强版GitHub Release (Create Enhanced Release)
+        uses: softprops/action-gh-release@v1 (使用softprops/action-gh-release@v1操作)
         with:
-          tag_name: ${{ github.ref_name }}
-          name: 🎉 Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }} (标签名称)
+          name: 🎉 发布 ${{ github.ref_name }} (发布名称)
           body: |
-            ## 🚀 更新内容
-            ${{ env.full_msg }}
+            ## 🚀 更新内容 (Update content)
+            ${{ env.full_msg }} (完整commit信息)
 
-            ## 📝 更新日志细节
-            ${{ env.CHANGELOG }}
+            ## 📝 更新日志细节 (Update log details)
+            ${{ env.CHANGELOG }} (更新日志)
 
-            ### 🛠️ 构建信息
-            - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8)
-            - 🏷️ 标签: ${{ github.ref_name }}
-            - 🔗 提交页面: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - 🔐 签名状态: ${{ secrets.PRIVATE_PEM && '已签名' || '未签名' }}
-          files: ${{ env.BUILD_OUTPUT }}
+            ### 🛠️ 构建信息 (Build info)
+            - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8) (构建时间)
+            - 🏷️ 标签: ${{ github.ref_name }} (标签)
+            - 🔗 提交页面: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (提交页面链接)
+            - 🔐 签名状态: ${{ secrets.PRIVATE_PEM && '已签名' || '未签名' }} (签名状态)
+          files: ${{ env.BUILD_OUTPUT }} (构建输出文件)
