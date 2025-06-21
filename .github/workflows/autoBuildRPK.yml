@@ -143,8 +143,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: 🎉 Release ${{ github.ref_name }}
           body: |
-            ## 📝 更新日志
-            ${{ env.CHANGELOG }}
+            ## 📝 更新日志 ${PREV_RELEASE:-初始版本} → ${{ github.ref_name }}
+            ${{ env.CHANGELOG | replace('## 📝 更新日志', '') }}
 
             ## 🛠️ 构建信息
             - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8)
