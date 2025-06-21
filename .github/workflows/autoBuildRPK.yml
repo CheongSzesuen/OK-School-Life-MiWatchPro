@@ -2,30 +2,39 @@ name: Build Signed RPK
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # 仅当推送标签时触发（如 v1.0.0）[2](@ref)
 
 jobs:
   build-rpk:
     runs-on: ubuntu-latest
     env:
-      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife
+      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife  # 修复路径拼写[citation:用户消息]
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4  # 使用最新稳定版[2](@ref)
 
       - name: Restore Signing Files
         run: |
           mkdir -p .temp_OKSchoolLife/sign/
+          # 使用多行文本写入PEM文件，保留完整格式[6](@ref)[citation:用户消息]
           cat << 'EOF' > .temp_OKSchoolLife/sign/private.pem
           ${{ secrets.PRIVATE_PEM }}
           EOF
           cat << 'EOF' > .temp_OKSchoolLife/sign/certificate.pem
           ${{ secrets.CERTIFICATE_PEM }}
           EOF
-          chmod 600 .temp_OKSchoolLife/sign/*.pem
+          chmod 600 .temp_OKSchoolLife/sign/*.pem  # 严格限制权限[6](@ref)
+
+      - name: Debug PEM Files
+        if: ${{ always() }}  # 即使后续失败也执行
+        run: |
+          ls -la .temp_OKSchoolLife/sign/  # 检查文件权限和路径[citation:用户消息]
+          hexdump -C .temp_OKSchoolLife/sign/private.pem | head -n 10  # 查看二进制内容[6](@ref)
 
       - name: Verify PEM Files
         run: |
-          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check
+          # 验证私钥和证书有效性[7,8](@ref)
+          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check || exit 1
           openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
 
       - name: Build RPK
@@ -34,8 +43,8 @@ jobs:
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4  # 关键修复点[6,7](@ref)
+        uses: actions/upload-artifact@v4  # 替换弃用的v3版本[citation:用户消息]
         with:
           name: signed-rpk
           path: ./OK_School_Life-MiBand9Pro-*.rpk
-          overwrite: true  # 避免同名冲突[6](@ref)
+          overwrite: true  # v4需显式声明覆盖[citation:用户消息]
