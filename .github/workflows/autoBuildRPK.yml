@@ -86,7 +86,7 @@ jobs:
           fi
           
           # 检查构建产物是否存在
-          if [ ! -f dist/*.rpk ]; then
+          if ! ls dist/*.rpk 1> /dev/null 2>&1; then
             echo "::error::No RPK file generated in dist directory"
             exit 1
           fi
@@ -94,32 +94,26 @@ jobs:
           # 重命名输出文件
           mv dist/*.rpk $BUILD_OUTPUT
 
-      # 7. 增强版更新日志生成（基于release比较）
-      - name: Generate enhanced changelog
+      # 7. 精确匹配的更新日志生成
+      - name: Generate precise changelog
         id: changelog
         run: |
-          # 获取上一个release的tag（通过GitHub API）
+          # 获取上一个release的tag
           PREV_RELEASE=$(curl -s \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/${{ github.repository }}/releases/latest | \
             jq -r '.tag_name // empty')
           
-          # 生成带完整commit信息的日志
+          # 生成精确格式的日志
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          echo "## 📝 更新日志" >> $GITHUB_ENV
+          echo "## 📝 更新日志 ${PREV_RELEASE:-初始版本} → ${{ github.ref_name }}" >> $GITHUB_ENV
           
-          if [ -z "$PREV_RELEASE" ]; then
-            echo "### 初始版本" >> $GITHUB_ENV
-            git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
-              --date=format:"%Y-%m-%d %H:%M:%S" \
-              ${{ github.ref_name }} >> $GITHUB_ENV
-          else
-            echo "### ${PREV_RELEASE} → ${{ github.ref_name }}" >> $GITHUB_ENV
-            git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
-              --date=format:"%Y-%m-%d %H:%M:%S" \
-              $PREV_RELEASE..${{ github.ref_name }} >> $GITHUB_ENV
-          fi
+          git log --pretty=format:"- **%s**%n  贡献者：%an <%ae>%n  提交时间：%ad%n  %b" \
+            --date=format:"%Y-%m-%d %H:%M:%S" \
+            ${PREV_RELEASE:+$PREV_RELEASE..}${{ github.ref_name }} | \
+            sed '/^  $/d' | \
+            sed 's/^  $$BUG$$/[BUG]/' >> $GITHUB_ENV
           
           echo "EOF" >> $GITHUB_ENV
 
@@ -140,8 +134,8 @@ jobs:
           # 获取commit短ID
           echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
 
-      # 9. 创建增强版GitHub Release
-      - name: Create Enhanced Release
+      # 9. 创建格式化的GitHub Release
+      - name: Create Formatted Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,12 +147,11 @@ jobs:
             ${{ env.CHANGELOG }}
 
             ## 🛠️ 构建信息
-            • 🕒 构建时间 (Timestamp): ${{ steps.meta.outputs.time }} (UTC+8)
-            • 🏷️ 标签 (Tag): ${{ github.ref_name }}
-            • 🔗 提交 (Commit): [${{ steps.meta.outputs.short_sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            • 🔐 签名状态 (Signing Status): ${{ steps.meta.outputs.sign_status }}
-            • 📦 构建产物: ${{ env.BUILD_OUTPUT }}
-
+            - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8)
+            - 🏷️ 标签: ${{ github.ref_name }}
+            - 🔗 提交: [${{ steps.meta.outputs.short_sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - 🔐 签名状态: ${{ steps.meta.outputs.sign_status }}
+            - 📦 构建产物: ${{ env.BUILD_OUTPUT }}
           files: ${{ env.BUILD_OUTPUT }}
           draft: false
           prerelease: false
