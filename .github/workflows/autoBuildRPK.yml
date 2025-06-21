@@ -1,4 +1,5 @@
 name: Build Signed RPK on Tag Release
+
 on:
   push:
     tags:
@@ -87,7 +88,7 @@ jobs:
           # 重命名输出文件
           mv dist/*.rpk $BUILD_OUTPUT
 
-# 7. 增强版更新日志生成（包含commit summary和description）
+      # 7. 增强版更新日志生成（包含commit summary和description）
       - name: Generate enhanced changelog
         id: changelog
         run: |
@@ -96,14 +97,12 @@ jobs:
           
           # 生成带完整commit信息的日志（包括description）
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          echo "## 📝 Changelog" >> $GITHUB_ENV
-          echo "### ${PREV_TAG:-Initial commit} → ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "## 📝 更新日志" >> $GITHUB_ENV
           
           # 使用git log的format提取完整commit信息
-          git log --pretty=format:"### %s%n%n%b%n%n- Commit: %h%n- Author: %an <%ae>%n- Date: %ad%n" \
+          git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
             --date=format:"%Y-%m-%d %H:%M:%S" \
-            ${PREV_TAG:+$PREV_TAG..}${{ github.ref_name}} | \
-            sed '/^$/d' >> $GITHUB_ENV  # 删除空行
+            ${PREV_TAG:+$PREV_TAG..}${{ github.ref_name}} >> $GITHUB_ENV
           
           echo "EOF" >> $GITHUB_ENV
 
@@ -111,31 +110,30 @@ jobs:
       - name: Gather metadata
         id: meta
         run: |
-          # 提取最新commit的完整message
-          FULL_MSG=$(git log -1 --pretty=format:"%B")
-          echo "full_msg<<EOF" >> $GITHUB_ENV
-          echo "$FULL_MSG" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-          
           # 构建时间（UTC+8）
           echo "time=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+          
+          # 签名状态
+          if grep -q "BEGIN PRIVATE KEY" $TEMP_SIGN_DIR/private.pem; then
+            echo "sign_status=已签名 (Signed)" >> $GITHUB_OUTPUT
+          else
+            echo "sign_status=未签名 (Unsigned)" >> $GITHUB_OUTPUT
+          fi
 
-      # 9. 创建增强版GitHub Release (Create Enhanced Release)
-      - name: 创建增强版GitHub Release (Create Enhanced Release)
-        uses: softprops/action-gh-release@v1 (使用softprops/action-gh-release@v1操作)
+      # 9. 创建增强版GitHub Release
+      - name: Create Enhanced Release
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }} (标签名称)
-          name: 🎉 发布 ${{ github.ref_name }} (发布名称)
+          tag_name: ${{ github.ref_name }}
+          name: 🎉 Release ${{ github.ref_name }}
           body: |
-            ## 🚀 更新内容 (Update content)
-            ${{ env.full_msg }} (完整commit信息)
+            ## 📝 更新日志
+            ${{ env.CHANGELOG }}
 
-            ## 📝 更新日志细节 (Update log details)
-            ${{ env.CHANGELOG }} (更新日志)
+            ## 🛠️ 构建信息
+            • 🕒 构建时间 (Timestamp): ${{ steps.meta.outputs.time }} (UTC+8)
+            • 🏷️ 标签 (Tag): ${{ github.ref_name }}
+            • 🔗 提交 (Commit): [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            • 🔐 签名状态 (Signing Status): ${{ steps.meta.outputs.sign_status }}
 
-            ### 🛠️ 构建信息 (Build info)
-            - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8) (构建时间)
-            - 🏷️ 标签: ${{ github.ref_name }} (标签)
-            - 🔗 提交页面: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (提交页面链接)
-            - 🔐 签名状态: ${{ secrets.PRIVATE_PEM && '已签名' || '未签名' }} (签名状态)
-          files: ${{ env.BUILD_OUTPUT }} (构建输出文件)
+          files: ${{ env.BUILD_OUTPUT }}
