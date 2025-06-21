@@ -2,7 +2,7 @@ name: Build Signed RPK
 on:
   push:
     tags:
-      - 'v*'  # 仅当推送标签时触发（如v1.0.0）
+      - 'v*'
 
 jobs:
   build-rpk:
@@ -11,54 +11,67 @@ jobs:
       TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife
 
     steps:
-      # 1. 代码检出（使用最新v4版本）
+      # 1. 代码检出
       - uses: actions/checkout@v4
 
-      # 2. 恢复签名文件（修复PEM格式与权限问题）
+      # 2. 恢复签名文件（增强格式与权限处理）
       - name: Restore Signing Files
         run: |
           mkdir -p .temp_OKSchoolLife/sign/
-          # 使用EOF保留完整PEM格式（含BEGIN/END标记行）
+          # 使用EOF保留完整PEM格式（含BEGIN/END标记行）[7](@ref)
           cat << 'EOF' > .temp_OKSchoolLife/sign/private.pem
           ${{ secrets.PRIVATE_PEM }}
           EOF
-          cat << 'EOF' > .temp_OKSchoolLife/sign/certificate.pem
-          ${{ secrets.CERTIFICATE_PEM }}
-          EOF
-          # 严格权限限制（OpenSSL要求）
+          # 检查文件是否成功生成
+          if [ ! -s .temp_OKSchoolLife/sign/private.pem ]; then
+            echo "❌ 错误：私钥文件为空或未生成！检查Secrets配置"
+            exit 1
+          fi
+          # 强制修正权限（避免OpenSSL拒绝读取）[8](@ref)
           chmod 700 .temp_OKSchoolLife/sign/
           chmod 600 .temp_OKSchoolLife/sign/*.pem
 
-      # 3. 调试步骤（验证文件内容与权限）
+      # 3. 增强调试步骤（输出关键信息）
       - name: Debug PEM Files
-        if: ${{ always() }}  # 即使后续步骤失败也执行
+        if: ${{ always() }}
         run: |
-          echo "----- File Content Headers -----"
-          head -n 3 .temp_OKSchoolLife/sign/*.pem
-          echo "\n----- File Permissions -----"
-          ls -la .temp_OKSchoolLife/sign/
-          echo "\n----- OpenSSL Version -----"
-          openssl version
+          echo "===== 文件完整性验证 ====="
+          # 检查文件头尾标记[7](@ref)
+          grep -q "BEGIN PRIVATE KEY" .temp_OKSchoolLife/sign/private.pem || echo "⚠️ 私钥缺少BEGIN标记"
+          grep -q "END PRIVATE KEY" .temp_OKSchoolLife/sign/private.pem || echo "⚠️ 私钥缺少END标记"
+          # 输出文件首尾5行（避免暴露完整密钥）
+          echo "私钥头部："
+          head -n 5 .temp_OKSchoolLife/sign/private.pem
+          echo "私钥尾部："
+          tail -n 5 .temp_OKSchoolLife/sign/private.pem
+          # 检查文件编码（排除非ASCII字符）
+          echo "二进制检查："
+          hexdump -C .temp_OKSchoolLife/sign/private.pem | head -10
 
-      # 4. 验证密钥有效性（修复OpenSSL读取失败问题）
+      # 4. 密钥验证（兼容RSA/ECDSA格式）[6,7](@ref)
       - name: Validate PEM Files
         run: |
-          # 检查私钥数学参数
-          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check || (echo "❌ Private key validation failed"; exit 1)
-          # 验证证书链
-          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text || (echo "❌ Certificate validation failed"; exit 1)
+          # 尝试解析密钥格式
+          if openssl asn1parse -in .temp_OKSchoolLife/sign/private.pem >/dev/null 2>&1; then
+            echo "✅ 私钥ASN.1结构验证通过"
+          else
+            echo "❌ 私钥格式无效！需转换为PEM格式"
+            exit 1
+          fi
+          # 兼容性验证（支持RSA/ECDSA）
+          openssl pkey -in .temp_OKSchoolLife/sign/private.pem -noout -check 2>openssl_error.log || (cat openssl_error.log; exit 1)
+          # 证书链验证
+          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
 
-      # 5. 构建RPK文件
+      # 5. 构建与上传（保持不变）
       - name: Build RPK
         run: |
           ./node_modules/.bin/aiot build --sign
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
-
-      # 6. 上传产物（使用v4版本并设置保留时间）
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: signed-rpk
           path: ./OK_School_Life-MiBand9Pro-*.rpk
           overwrite: true
-          retention-days: 3  # 自动清理旧产物[2](@ref)
+          retention-days: 3
