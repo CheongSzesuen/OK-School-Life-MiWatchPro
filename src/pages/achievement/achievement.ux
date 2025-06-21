@@ -5,6 +5,7 @@
         ontouchstart="setBtnActive(0)" ontouchend="setBtnInactive">
         <text class="back-icon">←</text>
       </div>
+      <input type="button" class="back-button" value="<" @click="routeBack" />
       <text class="title">成就</text>
     </div>
 
@@ -44,14 +45,10 @@ export default {
     activeBtnIndex: -1
   },
 
-  backToWelcome() {
-    router.push({uri: "pages/welcome"}) // 使用自定义路由
-  },
-  setBtnActive(index) {
-    this.activeBtnIndex = index
-  },
-  setBtnInactive() {
-    this.activeBtnIndex = -1
+  routeBack() {
+    router.replace({
+      uri: "pages/welcome"
+    })
   },
 
   clearAchievements() {
@@ -66,20 +63,6 @@ export default {
         }
       }
     })
-  },
-
-  backToWelcome() {
-    router.replace({
-      uri: "pages/welcome"
-    })
-  },
-
-  setBtnActive(index) {
-    this.activeBtnIndex = index
-  },
-
-  setBtnInactive() {
-    this.activeBtnIndex = -1
   }
 }
 </script>
@@ -102,24 +85,16 @@ export default {
   position: relative;
 }
 
-.back-btn {
-  position: absolute;
-  left: 20px;
-  width: 40px;
+.back-button {
+  width: 70px;
   height: 40px;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
-  transition: background-color 0.1s;
-}
-
-.back-btn.btn-active {
-  background-color: rgba(65, 184, 118, 0.2);
-}
-
-.back-icon {
-  font-size: 40px;
-  color: #41b876;
+  position: relative;
+  top: 5px;
+  background-color: black;
+  border: 3px;
+  border-color: gray;
+  color: darkgray;
+  font-size: 26px;
 }
 
 .title {
