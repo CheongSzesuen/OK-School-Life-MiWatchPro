@@ -17,21 +17,21 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x  # 严格匹配图片中的v20.19.2
+          node-version: 20.x  # 严格匹配图片中的 v20.19.2
 
       - name: Install dependencies
         run: |
           npm install
-          # 使用已存在的aiot-toolkit链接
+          # 验证工具链存在
           if [ ! -f "node_modules/.bin/aiot" ]; then
-            echo "::error::aiot-toolkit not found. Please commit the entire node_modules directory"
+            echo "::error::aiot-toolkit not found in node_modules/.bin/"
             exit 1
           fi
 
       - name: Build RPK
         run: |
-          # 使用确切的工具链路径
-          ./node_modules/.bin/aiot build --release
+          # 使用正确的构建命令（移除 --release 参数）
+          ./node_modules/.bin/aiot build
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Generate changelog
