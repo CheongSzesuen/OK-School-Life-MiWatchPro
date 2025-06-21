@@ -12,22 +12,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 获取完整的 Git 历史记录，用于生成日志
+          fetch-depth: 0  
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 20.x  
 
       - name: Install dependencies
         run: npm install
 
-      - name: Install Vela CLI
-        run: npm install -g @vela/cli
+      - name: Install Xiaomi Aiot Toolkit
+        run: |
+          npm install -g @aiot-toolkit/aiotpack@2.0.3  
+          aiotpack --version  
 
       - name: Build RPK
         run: |
-          vela build --release
+          aiotpack build --release  
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Generate changelog
@@ -44,10 +46,6 @@ jobs:
           echo "从 ${PREV_TAG:-初始提交} 到 ${{ github.ref_name }}" >> $GITHUB_ENV
           echo "$LOGS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-          echo "changelog=$(cat <<EOF
-          $LOGS
-          EOF
-          )" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
