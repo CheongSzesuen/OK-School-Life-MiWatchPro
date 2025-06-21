@@ -1,5 +1,6 @@
 name: Build RPK on Tag Release
-
+# 工作流名称：基于标签发布的RPK构建流程
+# 触发条件：当推送以v开头的标签时触发（如v1.0.0）
 on:
   push:
     tags:
@@ -7,64 +8,98 @@ on:
 
 jobs:
   build-rpk:
+    # 使用最新版Ubuntu作为运行环境
     runs-on: ubuntu-latest
+    
     steps:
+      # 步骤1：检出代码仓库
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # 官方提供的代码检出Action
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 获取完整git历史记录，用于生成changelog
 
+      # 步骤2：设置Node.js环境
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3  # 官方Node.js环境设置
         with:
-          node-version: 20.x  # 严格匹配图片中的 v20.19.2
+          node-version: 20.x  # 严格匹配图片中的v20.19.2版本
+          cache: 'npm'  # 启用npm缓存加速安装
 
+      # 步骤3：安装项目依赖
       - name: Install dependencies
         run: |
+          # 安装package.json中的依赖
           npm install
-          # 验证工具链存在
+          
+          # 验证aiot工具链是否存在（根据图片确认需要检查）
           if [ ! -f "node_modules/.bin/aiot" ]; then
             echo "::error::aiot-toolkit not found in node_modules/.bin/"
+            echo "请确认已通过AIoT IDE正确安装aiot-toolkit@2.0.3"
             exit 1
           fi
 
+      # 步骤4：构建RPK包
       - name: Build RPK
         run: |
-          # 使用正确的构建命令（移除 --release 参数）
+          # 使用项目本地安装的aiot工具链（图片显示已安装2.0.3版本）
           ./node_modules/.bin/aiot build
+          
+          # 将生成的RPK文件按约定格式重命名
+          # 格式：项目名称-设备类型-标签版本.rpk
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
+      # 步骤5：生成更新日志
       - name: Generate changelog
-        id: changelog
+        id: changelog  # 定义步骤ID用于后续引用
         run: |
+          # 获取前一个标签（用于生成版本间变更记录）
           PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
+          
+          # 根据是否有前一个标签生成不同的日志范围
           if [ -z "$PREV_TAG" ]; then
+            # 首次发布时获取全部提交记录
             LOGS=$(git log --pretty=format:"- %s ↳ 提交人: %an (%h)")
           else
+            # 常规发布获取两个标签之间的提交记录
             LOGS=$(git log --pretty=format:"- %s ↳ 提交人: %an (%h)" $PREV_TAG..${{ github.ref_name }})
           fi
+          
+          # 将日志内容写入环境变量供后续步骤使用
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "📝 更新日志" >> $GITHUB_ENV
           echo "从 ${PREV_TAG:-初始提交} 到 ${{ github.ref_name }}" >> $GITHUB_ENV
           echo "$LOGS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      # 步骤6：获取当前时间（UTC+8时区）
+      - name: Get current time (Asia/Shanghai)
+        id: datetime  # 定义步骤ID用于后续引用
+        run: |
+          # 设置时区为上海（UTC+8）
+          export TZ="Asia/Shanghai"
+          # 格式化时间为YYYY-MM-DD HH:MM:SS
+          echo "time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+        shell: bash  # 明确指定shell类型
+
+      # 步骤7：创建GitHub Release
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v1  # 第三方Release创建工具
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
+          # Release基本信息设置
+          tag_name: ${{ github.ref_name }}  # 使用触发工作流的标签
+          name: Release ${{ github.ref_name }}  # Release名称
+          
+          # Release正文内容（包含更新日志和构建信息）
           body: |
             ${{ env.CHANGELOG }}
 
             🛠️ 构建信息
             🕒 构建时间: ${{ steps.datetime.outputs.time }} (UTC+8)
             🏷️ 版本标签: ${{ github.ref_name }}
-            🔗 提交页面: ${{ github.sha }}
+            🔗 提交页面: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
+          
+          # 要包含的RPK文件
           files: OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
         env:
+          # 使用GitHub自动生成的token进行认证
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get current time
-        id: datetime
-        run: echo "time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
