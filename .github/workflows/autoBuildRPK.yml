@@ -85,24 +85,41 @@ jobs:
             ./node_modules/.bin/aiot build
           fi
           
+          # 检查构建产物是否存在
+          if [ ! -f dist/*.rpk ]; then
+            echo "::error::No RPK file generated in dist directory"
+            exit 1
+          fi
+          
           # 重命名输出文件
           mv dist/*.rpk $BUILD_OUTPUT
 
-      # 7. 增强版更新日志生成（包含commit summary和description）
+      # 7. 增强版更新日志生成（基于release比较）
       - name: Generate enhanced changelog
         id: changelog
         run: |
-          # 获取上一个tag（若存在）
-          PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
+          # 获取上一个release的tag（通过GitHub API）
+          PREV_RELEASE=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases/latest | \
+            jq -r '.tag_name // empty')
           
-          # 生成带完整commit信息的日志（包括description）
+          # 生成带完整commit信息的日志
           echo "CHANGELOG<<EOF" >> $GITHUB_ENV
           echo "## 📝 更新日志" >> $GITHUB_ENV
           
-          # 使用git log的format提取完整commit信息
-          git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
-            --date=format:"%Y-%m-%d %H:%M:%S" \
-            ${PREV_TAG:+$PREV_TAG..}${{ github.ref_name}} >> $GITHUB_ENV
+          if [ -z "$PREV_RELEASE" ]; then
+            echo "### 初始版本" >> $GITHUB_ENV
+            git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
+              --date=format:"%Y-%m-%d %H:%M:%S" \
+              ${{ github.ref_name }} >> $GITHUB_ENV
+          else
+            echo "### ${PREV_RELEASE} → ${{ github.ref_name }}" >> $GITHUB_ENV
+            git log --pretty=format:"%s%n%n详细信息%n%b%n贡献者：%an <%ae>%n提交时间：%ad%n" \
+              --date=format:"%Y-%m-%d %H:%M:%S" \
+              $PREV_RELEASE..${{ github.ref_name }} >> $GITHUB_ENV
+          fi
           
           echo "EOF" >> $GITHUB_ENV
 
@@ -119,10 +136,15 @@ jobs:
           else
             echo "sign_status=未签名 (Unsigned)" >> $GITHUB_OUTPUT
           fi
+          
+          # 获取commit短ID
+          echo "short_sha=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_OUTPUT
 
       # 9. 创建增强版GitHub Release
       - name: Create Enhanced Release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref_name }}
           name: 🎉 Release ${{ github.ref_name }}
@@ -133,7 +155,10 @@ jobs:
             ## 🛠️ 构建信息
             • 🕒 构建时间 (Timestamp): ${{ steps.meta.outputs.time }} (UTC+8)
             • 🏷️ 标签 (Tag): ${{ github.ref_name }}
-            • 🔗 提交 (Commit): [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            • 🔗 提交 (Commit): [${{ steps.meta.outputs.short_sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             • 🔐 签名状态 (Signing Status): ${{ steps.meta.outputs.sign_status }}
+            • 📦 构建产物: ${{ env.BUILD_OUTPUT }}
 
           files: ${{ env.BUILD_OUTPUT }}
+          draft: false
+          prerelease: false
