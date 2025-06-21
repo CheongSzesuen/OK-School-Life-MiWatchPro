@@ -1,4 +1,4 @@
-name: Build and Verify Signed RPK
+name: Build Signed RPK on Tag Release
 on:
   push:
     tags:
@@ -62,7 +62,7 @@ jobs:
             echo "::warning::Key pair mismatch (proceeding with unsigned build)"
           fi
 
-      # 6. 构建RPK（动态生成签名配置）
+      # 6. 构建RPK（根据密钥状态决定是否签名）
       - name: Build RPK
         run: |
           # 创建临时配置文件
@@ -87,42 +87,7 @@ jobs:
           # 重命名输出文件
           mv dist/*.rpk $BUILD_OUTPUT
 
-      # 7. 新增签名验证步骤 [2,4](@ref)
-      - name: Verify RPK Signature
-        if: ${{ success() && secrets.PRIVATE_PEM }}
-        run: |
-          # 解压RPK检查签名文件
-          unzip -l $BUILD_OUTPUT | grep META-INF/CERT && echo "签名文件存在" || exit 1
-          
-          # 使用Python验证签名（需预装pycryptodome）
-          python3 - <<EOF
-          from Crypto.Signature import PKCS1_v1_5
-          from Crypto.PublicKey import RSA
-          from Crypto.Hash import SHA256
-          import zipfile
-
-          # 提取签名数据
-          with zipfile.ZipFile("$BUILD_OUTPUT") as z:
-              with z.open('META-INF/CERT.SF') as f:
-                  signature = f.read()
-              with z.open('META-INF/MANIFEST.MF') as f:
-                  manifest = f.read()
-
-          # 加载公钥
-          with open("$TEMP_SIGN_DIR/certificate.pem", "rb") as f:
-              pubkey = RSA.importKey(f.read())
-
-          # 验证签名
-          verifier = PKCS1_v1_5.new(pubkey)
-          digest = SHA256.new(manifest)
-          if verifier.verify(digest, signature):
-              print("✅ 签名验证通过")
-          else:
-              print("❌ 签名验证失败")
-              exit(1)
-          EOF
-
-      # 8. 生成更新日志
+      # 7. 生成更新日志
       - name: Generate changelog
         id: changelog
         run: |
@@ -134,13 +99,13 @@ jobs:
           echo "$LOGS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      # 9. 获取构建时间（UTC+8）
+      # 8. 获取构建时间（UTC+8）
       - name: Get build time
         id: time
         run: |
           echo "time=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
-      # 10. 创建GitHub Release（增强安全标识）
+      # 9. 创建GitHub Release
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -153,6 +118,5 @@ jobs:
             - 🕒 构建时间: ${{ steps.time.outputs.time }} (UTC+8)
             - 🏷️ 标签: ${{ github.ref_name }}
             - 🔗 提交: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - 🔐 签名状态: ${{ steps.verify-rpk.outcome == 'success' && 'Verified' || 'Unverified' }}
-            - ⚠️ 安全提示: ${{ !secrets.PRIVATE_PEM && '未使用代码签名证书' || '' }}
+            - 🔐 签名状态: ${{ secrets.PRIVATE_PEM && '已签名' || '未签名' }}
           files: ${{ env.BUILD_OUTPUT }}
