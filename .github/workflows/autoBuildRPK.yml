@@ -1,0 +1,70 @@
+name: Build RPK on Tag Release
+
+on:
+  push:
+    tags:
+      - 'v*'  
+
+jobs:
+  build-rpk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的 Git 历史记录，用于生成日志
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Vela CLI
+        run: npm install -g @vela/cli
+
+      - name: Build RPK
+        run: |
+          vela build --release
+          mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            LOGS=$(git log --pretty=format:"- %s ↳ 提交人: %an (%h)")
+          else
+            LOGS=$(git log --pretty=format:"- %s ↳ 提交人: %an (%h)" $PREV_TAG..${{ github.ref_name }})
+          fi
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "📝 更新日志" >> $GITHUB_ENV
+          echo "从 ${PREV_TAG:-初始提交} 到 ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "$LOGS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          echo "changelog=$(cat <<EOF
+          $LOGS
+          EOF
+          )" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            ${{ env.CHANGELOG }}
+
+            🛠️ 构建信息
+            🕒 构建时间: ${{ steps.datetime.outputs.time }} (UTC+8)
+            🏷️ 版本标签: ${{ github.ref_name }}
+            🔗 提交页面: ${{ github.sha }}
+          files: OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current time
+        id: datetime
+        run: echo "time=$(date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
