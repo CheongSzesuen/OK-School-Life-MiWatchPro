@@ -1,26 +1,34 @@
-- name: Build Signed RPK
-  env:
-    TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OkSchoolLife
-  steps:
-    - uses: actions/checkout@v4
+name: Build Signed RPK
+on:
+  push:
+    tags:
+      - 'v*'
 
-    - name: Restore Signing Files
-      run: |
-        mkdir -p .temp_OkSchoolLife/sign/
-        cat << 'EOF' > .temp_OkSchoolLife/sign/private.pem
-        ${{ secrets.PRIVATE_PEM }}
-        EOF
-        cat << 'EOF' > .temp_OkSchoolLife/sign/certificate.pem
-        ${{ secrets.CERTIFICATE_PEM }}
-        EOF
-        chmod 600 .temp_OkSchoolLife/sign/*.pem
+jobs:
+  build-rpk:
+    runs-on: ubuntu-latest
+    env:
+      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife  # 环境变量定义在job层级
+    steps:
+      - uses: actions/checkout@v4
 
-    - name: Verify PEM Files
-      run: |
-        openssl rsa -in .temp_OkSchoolLife/sign/private.pem -noout -check
-        openssl x509 -in .temp_OkSchoolLife/sign/certificate.pem -noout -text
+      - name: Restore Signing Files
+        run: |
+          mkdir -p .temp_OKSchoolLife/sign/
+          cat << 'EOF' > .temp_OKSchoolLife/sign/private.pem
+          ${{ secrets.PRIVATE_PEM }}
+          EOF
+          cat << 'EOF' > .temp_OKSchoolLife/sign/certificate.pem
+          ${{ secrets.CERTIFICATE_PEM }}
+          EOF
+          chmod 600 .temp_OKSchoolLife/sign/*.pem
 
-    - name: Build RPK
-      run: |
-        ./node_modules/.bin/aiot build --sign
-        mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
+      - name: Verify PEM Files
+        run: |
+          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check
+          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
+
+      - name: Build RPK
+        run: |
+          ./node_modules/.bin/aiot build --sign
+          mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
