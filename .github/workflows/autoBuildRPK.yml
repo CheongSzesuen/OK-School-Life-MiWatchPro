@@ -3,7 +3,7 @@ name: Build RPK on Tag Release
 on:
   push:
     tags:
-      - 'v*'  
+      - 'v*'
 
 jobs:
   build-rpk:
@@ -12,24 +12,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  
+          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x  
+          node-version: 20.x  # 与图片一致
 
       - name: Install dependencies
-        run: npm install
-
-      - name: Install Xiaomi Aiot Toolkit
         run: |
-          npm install -g @aiot-toolkit/aiotpack@2.0.3  
-          aiotpack --version  
+          npm install
+          npm install @aiot-toolkit/aiotpack@2.0.3 --save-dev  # 作为dev依赖安装
 
-      - name: Build RPK
+      - name: Build RPK (使用本地安装的工具链)
         run: |
-          aiotpack build --release  
+          npx aiotpack build --release
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Generate changelog
