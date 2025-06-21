@@ -11,10 +11,10 @@ jobs:
       TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife
 
     steps:
-      # 1. 代码检出
+      # 1. 代码检出（使用最新v4版本）
       - uses: actions/checkout@v4
 
-      # 2. 恢复签名文件（修复PEM格式问题）[1,3](@ref)
+      # 2. 恢复签名文件（修复PEM格式与权限问题）
       - name: Restore Signing Files
         run: |
           mkdir -p .temp_OKSchoolLife/sign/
@@ -25,25 +25,28 @@ jobs:
           cat << 'EOF' > .temp_OKSchoolLife/sign/certificate.pem
           ${{ secrets.CERTIFICATE_PEM }}
           EOF
-          chmod 600 .temp_OKSchoolLife/sign/*.pem  # 严格权限限制[3](@ref)
+          # 严格权限限制（OpenSSL要求）
+          chmod 700 .temp_OKSchoolLife/sign/
+          chmod 600 .temp_OKSchoolLife/sign/*.pem
 
-      # 3. 调试步骤（验证文件内容）
+      # 3. 调试步骤（验证文件内容与权限）
       - name: Debug PEM Files
-        if: ${{ always() }}
+        if: ${{ always() }}  # 即使后续步骤失败也执行
         run: |
+          echo "----- File Content Headers -----"
+          head -n 3 .temp_OKSchoolLife/sign/*.pem
+          echo "\n----- File Permissions -----"
           ls -la .temp_OKSchoolLife/sign/
-          echo "Private Key Head:"
-          head -n 3 .temp_OKSchoolLife/sign/private.pem
-          echo "Certificate Head:"
-          head -n 3 .temp_OKSchoolLife/sign/certificate.pem
+          echo "\n----- OpenSSL Version -----"
+          openssl version
 
-      # 4. 验证密钥有效性（修复OpenSSL读取失败问题）[3](@ref)
-      - name: Verify PEM Files
+      # 4. 验证密钥有效性（修复OpenSSL读取失败问题）
+      - name: Validate PEM Files
         run: |
           # 检查私钥数学参数
-          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check || (echo "Private key validation failed"; exit 1)
+          openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check || (echo "❌ Private key validation failed"; exit 1)
           # 验证证书链
-          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
+          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text || (echo "❌ Certificate validation failed"; exit 1)
 
       # 5. 构建RPK文件
       - name: Build RPK
@@ -51,11 +54,11 @@ jobs:
           ./node_modules/.bin/aiot build --sign
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
-      # 6. 上传产物（替换弃用的v3版本）[1,4](@ref)
+      # 6. 上传产物（使用v4版本并设置保留时间）
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: signed-rpk
           path: ./OK_School_Life-MiBand9Pro-*.rpk
-          overwrite: true  # v4需显式声明覆盖[1](@ref)
-          retention-days: 7  # 设置自动清理时间
+          overwrite: true
+          retention-days: 3  # 自动清理旧产物[2](@ref)
