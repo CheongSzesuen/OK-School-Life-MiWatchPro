@@ -65,12 +65,26 @@ jobs:
       # 6. 构建RPK（根据密钥状态决定是否签名）
       - name: Build RPK
         run: |
+          # 创建临时配置文件
+          cat > aiot.config.js <<EOF
+          module.exports = {
+            sign: {
+              cert: '$TEMP_SIGN_DIR/certificate.pem',
+              privateKey: '$TEMP_SIGN_DIR/private.pem'
+            }
+          }
+          EOF
+          
+          # 执行构建
           if grep -q "BEGIN PRIVATE KEY" $TEMP_SIGN_DIR/private.pem; then
-            ./node_modules/.bin/aiot build --sign
-          else
+            echo "::info::Building signed RPK package"
             ./node_modules/.bin/aiot build
+          else
             echo "::warning::Building unsigned RPK due to invalid signing key"
+            ./node_modules/.bin/aiot build
           fi
+          
+          # 重命名输出文件
           mv dist/*.rpk $BUILD_OUTPUT
 
       # 7. 生成更新日志
@@ -101,8 +115,8 @@ jobs:
             ${{ env.CHANGELOG }}
 
             ### Build Info
-            - 🕒 Timestamp: ${{ steps.time.outputs.time }} (UTC+8)
-            - 🏷️ Tag: ${{ github.ref_name }}
-            - 🔗 Commit: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            - 🕒 构建时间: ${{ steps.time.outputs.time }} (UTC+8)
+            - 🏷️ 标签: ${{ github.ref_name }}
+            - 🔗 提交: [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
             - 🔐 Build Type: ${{ secrets.PRIVATE_PEM && 'Signed' || 'Unsigned' }}
           files: ${{ env.BUILD_OUTPUT }}
