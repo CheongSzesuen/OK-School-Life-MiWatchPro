@@ -1,40 +1,33 @@
 <template>
   <div class="achievement-page">
     <div class="header">
-      <div class="back-btn" 
-           :class="{'btn-active': activeBtnIndex === 0}"
-           @click="backToWelcome"
-           @touchstart="setBtnActive(0)"
-           @touchend="setBtnInactive">
+      <div class="back-btn {{activeBtnIndex === 0 ? 'btn-active' : ''}}" onclick="backToWelcome"
+        ontouchstart="setBtnActive(0)" ontouchend="setBtnInactive">
         <text class="back-icon">←</text>
       </div>
       <text class="title">成就</text>
     </div>
-  
+
     <div class="content">
       <div class="achievements-section" if="{{achievements.length > 0}}">
         <div class="achievements-list">
           <div class="achievement-item" for="(achievement, index) in achievements">
             <div class="achievement-content">
               <div class="text-container">
-                <text class="achievement-text">{{achievement}}</text>
+                <text class="achievement-text">{{ achievement }}</text>
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+
       <div class="empty-state" if="{{achievements.length === 0}}">
         <text class="empty-text">暂无成就</text>
       </div>
     </div>
-    
+
     <div class="footer">
-      <div class="btn clear-btn" 
-           :class="{'btn-active': activeBtnIndex === 1}" 
-           @click="clearAchievements"
-           @touchstart="setBtnActive(1)"
-           @touchend="setBtnInactive">
+      <div class="{{activeBtnIndex === 0 ? 'btn-active' : ''}}">
         <text class="btn-text">清空成就</text>
       </div>
     </div>
@@ -42,45 +35,49 @@
 </template>
 
 <script>
-import router from '@system.router'
-import prompt from '@system.prompt'
+import router from "@system.router"
+import prompt from "@system.prompt"
 
 export default {
   private: {
-    achievements: [
-      "1",
-      "2"
-    ],
+    achievements: ["1", "2"],
     activeBtnIndex: -1
   },
-  
+
+  backToWelcome() {
+    router.push({uri: "pages/welcome"}) // 使用自定义路由
+  },
+  setBtnActive(index) {
+    this.activeBtnIndex = index
+  },
+  setBtnInactive() {
+    this.activeBtnIndex = -1
+  },
+
   clearAchievements() {
     prompt.showDialog({
-      title: '确认清空',
-      message: '确定要清空所有成就吗？',
-      buttons: [
-        { text: '取消' },
-        { text: '确定', color: '#FF3B30' }
-      ],
+      title: "确认清空",
+      message: "确定要清空所有成就吗？",
+      buttons: [{text: "取消"}, {text: "确定", color: "#FF3B30"}],
       success: (res) => {
         if (res.index === 1) {
           this.achievements = []
-          prompt.showToast({ message: '成就已清空' })
+          prompt.showToast({message: "成就已清空"})
         }
       }
     })
   },
-  
+
   backToWelcome() {
     router.replace({
-      uri: 'pages/welcome'
+      uri: "pages/welcome"
     })
   },
-  
+
   setBtnActive(index) {
     this.activeBtnIndex = index
   },
-  
+
   setBtnInactive() {
     this.activeBtnIndex = -1
   }
@@ -88,131 +85,131 @@ export default {
 </script>
 
 <style>
-  .achievement-page {
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    background-color: #0f0f15;
-    padding: 15px;
-  }
+.achievement-page {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: #0f0f15;
+  padding: 15px;
+}
 
-  .header {
-    width: 100%;
-    height: 70px;
-    flex-direction: row;
-    align-items: center;
-    margin-bottom: 15px;
-    position: relative;
-  }
+.header {
+  width: 100%;
+  height: 70px;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 15px;
+  position: relative;
+}
 
-  .back-btn {
-    position: absolute;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-    border-radius: 8px;
-    transition: background-color 0.1s;
-  }
+.back-btn {
+  position: absolute;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  transition: background-color 0.1s;
+}
 
-  .back-btn.btn-active {
-    background-color: rgba(65, 184, 118, 0.2);
-  }
+.back-btn.btn-active {
+  background-color: rgba(65, 184, 118, 0.2);
+}
 
-  .back-icon {
-    font-size: 40px;
-    color: #41b876;
-  }
+.back-icon {
+  font-size: 40px;
+  color: #41b876;
+}
 
-  .title {
-    font-size: 36px;
-    font-weight: bold;
-    color: #41b876;
-    text-align: center;
-    width: 100%;
-  }
+.title {
+  font-size: 36px;
+  font-weight: bold;
+  color: #41b876;
+  text-align: center;
+  width: 100%;
+}
 
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    width: 100%;
-  }
+.content {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+}
 
-  .achievements-section {
-    width: 100%;
-    flex-direction: column;
-  }
+.achievements-section {
+  width: 100%;
+  flex-direction: column;
+}
 
-  .achievements-list {
-    width: 100%;
-    flex-direction: column;
-  }
+.achievements-list {
+  width: 100%;
+  flex-direction: column;
+}
 
-  .achievement-item {
-    width: 100%;
-    padding: 20px 15px;
-    border-bottom-width: 1px;
-    border-bottom-color: #252530;
-  }
+.achievement-item {
+  width: 100%;
+  padding: 20px 15px;
+  border-bottom-width: 1px;
+  border-bottom-color: #252530;
+}
 
-  .achievement-content {
-    flex-direction: row;
-    align-items: center;
-  }
+.achievement-content {
+  flex-direction: row;
+  align-items: center;
+}
 
-  .text-container {
-    flex: 1;
-    overflow: hidden;
-  }
+.text-container {
+  flex: 1;
+  overflow: hidden;
+}
 
-  .achievement-text {
-    font-size: 26px;
-    color: #E0E0E0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.achievement-text {
+  font-size: 26px;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .empty-state {
-    flex: 1;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    padding: 40px 0;
-  }
+.empty-state {
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 40px 0;
+}
 
-  .empty-text {
-    font-size: 28px;
-    color: #888899;
-  }
+.empty-text {
+  font-size: 28px;
+  color: #888899;
+}
 
-  .footer {
-    position: fixed;
-    bottom: 20px;
-    width: 100%;
-    padding: 0 20px;
-    align-items: center;
-  }
+.footer {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  padding: 0 20px;
+  align-items: center;
+}
 
-  .clear-btn {
-    width: 100%;
-    height: 60px;
-    background-color: #2A2A3A;
-    border-radius: 8px;
-    border: 1px solid #3A3A4A;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.1s;
-  }
+.clear-btn {
+  width: 100%;
+  height: 60px;
+  background-color: #2a2a3a;
+  border-radius: 8px;
+  border: 1px solid #3a3a4a;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.1s;
+}
 
-  .clear-btn.btn-active {
-    background-color: #3A3A4A;
-  }
+.clear-btn.btn-active {
+  background-color: #3a3a4a;
+}
 
-  .btn-text {
-    font-size: 28px;
-    color: #FF5555;
-    font-weight: bold;
-  }
+.btn-text {
+  font-size: 28px;
+  color: #ff5555;
+  font-weight: bold;
+}
 </style>

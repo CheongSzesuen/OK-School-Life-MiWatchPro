@@ -1,11 +1,11 @@
 <template>
   <div class="WelcomePage">
     <image class="icon" src="../../common/assets/icon/icon-v4.png"></image>
-    
+
     <div class="game-name-container">
       <text class="GameName">{{ GameName }}</text>
     </div>
-    
+
     <text class="loading-text">加载中...</text>
   </div>
 </template>
@@ -17,13 +17,13 @@ export default {
   onInit() {
     setTimeout(() => {
       router.replace({
-        uri: 'pages/load' 
+        uri: "pages/welcome"
       })
-    }, 1500)  
+    }, 2000)
   },
 
   private: {
-    GameName: "Ok School Life"  
+    GameName: "OK School Life"
   }
 }
 </script>
@@ -40,25 +40,25 @@ export default {
 }
 
 .icon {
-  width: 200px; 
+  width: 200px;
   height: 200px;
-  border-radius: 30px; 
-  margin-bottom: 40px; 
+  border-radius: 30px;
+  margin-bottom: 40px;
 }
 
 .game-name-container {
-  max-width: 100%; 
-  padding: 0 15px; 
+  max-width: 100%;
+  padding: 0 15px;
   margin-top: 20px;
   margin-bottom: 40px;
 }
 
 .GameName {
-  font-size: 38px; 
+  font-size: 38px;
   text-align: center;
-  color: #ffffff; 
+  color: #ffffff;
   font-weight: bold;
-  letter-spacing: 1px; 
+  letter-spacing: 1px;
   word-wrap: break-word;
   white-space: normal;
 }
@@ -71,9 +71,14 @@ export default {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
-
-
 </style>
