@@ -8,70 +8,68 @@ jobs:
   build-rpk:
     runs-on: ubuntu-latest
     env:
-      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife
+      TEMP_SIGN_DIR: ${{ github.workspace }}/.temp_sign
 
     steps:
       # 1. 代码检出
       - uses: actions/checkout@v4
 
-      # 2. 恢复签名文件（增强格式与权限处理）
-      - name: Restore Signing Files
+      # 2. 安全写入密钥文件（增强格式检查）
+      - name: Setup Signing Files
         run: |
-          mkdir -p .temp_OKSchoolLife/sign/
-          # 使用EOF保留完整PEM格式（含BEGIN/END标记行）[7](@ref)
-          cat << 'EOF' > .temp_OKSchoolLife/sign/private.pem
-          ${{ secrets.PRIVATE_PEM }}
-          EOF
-          # 检查文件是否成功生成
-          if [ ! -s .temp_OKSchoolLife/sign/private.pem ]; then
-            echo "❌ 错误：私钥文件为空或未生成！检查Secrets配置"
+          mkdir -p $TEMP_SIGN_DIR
+          # 严格验证Secrets是否存在
+          if [ -z "${{ secrets.PRIVATE_PEM }}" ]; then
+            echo "::error::PRIVATE_PEM未设置！检查GitHub仓库Secrets配置"
             exit 1
           fi
-          # 强制修正权限（避免OpenSSL拒绝读取）[8](@ref)
-          chmod 700 .temp_OKSchoolLife/sign/
-          chmod 600 .temp_OKSchoolLife/sign/*.pem
-
-      # 3. 增强调试步骤（输出关键信息）
-      - name: Debug PEM Files
-        if: ${{ always() }}
-        run: |
-          echo "===== 文件完整性验证 ====="
-          # 检查文件头尾标记[7](@ref)
-          grep -q "BEGIN PRIVATE KEY" .temp_OKSchoolLife/sign/private.pem || echo "⚠️ 私钥缺少BEGIN标记"
-          grep -q "END PRIVATE KEY" .temp_OKSchoolLife/sign/private.pem || echo "⚠️ 私钥缺少END标记"
-          # 输出文件首尾5行（避免暴露完整密钥）
-          echo "私钥头部："
-          head -n 5 .temp_OKSchoolLife/sign/private.pem
-          echo "私钥尾部："
-          tail -n 5 .temp_OKSchoolLife/sign/private.pem
-          # 检查文件编码（排除非ASCII字符）
-          echo "二进制检查："
-          hexdump -C .temp_OKSchoolLife/sign/private.pem | head -10
-
-      # 4. 密钥验证（兼容RSA/ECDSA格式）[6,7](@ref)
-      - name: Validate PEM Files
-        run: |
-          # 尝试解析密钥格式
-          if openssl asn1parse -in .temp_OKSchoolLife/sign/private.pem >/dev/null 2>&1; then
-            echo "✅ 私钥ASN.1结构验证通过"
-          else
-            echo "❌ 私钥格式无效！需转换为PEM格式"
+          # 写入私钥并验证格式
+          echo "${{ secrets.PRIVATE_PEM }}" > $TEMP_SIGN_DIR/private.pem
+          if ! grep -q "BEGIN PRIVATE KEY" $TEMP_SIGN_DIR/private.pem; then
+            echo "::error::私钥缺少PEM标记，请检查Secrets内容格式"
             exit 1
           fi
-          # 兼容性验证（支持RSA/ECDSA）
-          openssl pkey -in .temp_OKSchoolLife/sign/private.pem -noout -check 2>openssl_error.log || (cat openssl_error.log; exit 1)
-          # 证书链验证
-          openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
+          # 写入证书
+          echo "${{ secrets.CERTIFICATE_PEM }}" > $TEMP_SIGN_DIR/certificate.pem
+          # 强制设置权限
+          chmod 700 $TEMP_SIGN_DIR
+          chmod 600 $TEMP_SIGN_DIR/*.pem
 
-      # 5. 构建与上传（保持不变）
+      # 3. 深度调试输出
+      - name: Debug Key Files
+        if: always()
+        run: |
+          echo "===== 私钥完整性验证 ====="
+          head -n 3 $TEMP_SIGN_DIR/private.pem
+          echo "... [内容已截断] ..."
+          tail -n 3 $TEMP_SIGN_DIR/private.pem
+          echo "文件大小: $(wc -c < $TEMP_SIGN_DIR/private.pem)字节"
+          
+          echo "\n===== OpenSSL验证 ====="
+          openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -check 2>&1 || true
+          openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -text 2>&1 | head -n 10
+
+      # 4. 密钥对匹配验证
+      - name: Validate Key Pair
+        run: |
+          # 检查私钥与证书是否匹配
+          PRIVATE_MODULUS=$(openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -modulus | openssl sha256)
+          CERT_MODULUS=$(openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -modulus | openssl sha256)
+          if [ "$PRIVATE_MODULUS" != "$CERT_MODULUS" ]; then
+            echo "::error::私钥与证书不匹配！请重新生成密钥对"
+            exit 1
+          fi
+          echo "✅ 密钥对验证通过"
+
+      # 5. 构建与上传
       - name: Build RPK
         run: |
           ./node_modules/.bin/aiot build --sign
-          mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
+          mv dist/*.rpk ./release-${{ github.ref_name }}.rpk
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: signed-rpk
-          path: ./OK_School_Life-MiBand9Pro-*.rpk
-          overwrite: true
+          path: ./release-*.rpk
           retention-days: 3
