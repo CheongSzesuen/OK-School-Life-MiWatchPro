@@ -120,7 +120,7 @@ jobs:
           # 构建时间（UTC+8）
           echo "time=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
-            # 9. 创建增强版GitHub Release (Create Enhanced Release)
+      # 9. 创建增强版GitHub Release (Create Enhanced Release)
       - name: 创建增强版GitHub Release (Create Enhanced Release)
         uses: softprops/action-gh-release@v1 (使用softprops/action-gh-release@v1操作)
         with:
