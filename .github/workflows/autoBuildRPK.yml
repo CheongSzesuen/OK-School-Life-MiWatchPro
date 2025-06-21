@@ -14,62 +14,62 @@ jobs:
       # 1. 代码检出
       - uses: actions/checkout@v4
 
-      # 2. 安全写入密钥文件（增强格式检查）
+      # 2. 安全写入密钥文件（增强错误处理）
       - name: Setup Signing Files
         run: |
           mkdir -p $TEMP_SIGN_DIR
-          # 严格验证Secrets是否存在
-          if [ -z "${{ secrets.PRIVATE_PEM }}" ]; then
-            echo "::error::PRIVATE_PEM未设置！检查GitHub仓库Secrets配置"
+          # 检查Secrets是否存在
+          if [ -z "${{ secrets.PRIVATE_PEM }}" ] || [ -z "${{ secrets.CERTIFICATE_PEM }}" ]; then
+            echo "::error::缺少密钥或证书！请检查Secrets配置：PRIVATE_PEM和CERTIFICATE_PEM"
             exit 1
           fi
           # 写入私钥并验证格式
           echo "${{ secrets.PRIVATE_PEM }}" > $TEMP_SIGN_DIR/private.pem
-          if ! grep -q "BEGIN PRIVATE KEY" $TEMP_SIGN_DIR/private.pem; then
-            echo "::error::私钥缺少PEM标记，请检查Secrets内容格式"
+          echo "${{ secrets.CERTIFICATE_PEM }}" > $TEMP_SIGN_DIR/certificate.pem
+          # 验证PEM标记
+          if ! grep -q "BEGIN PRIVATE KEY" $TEMP_SIGN_DIR/private.pem || \
+             ! grep -q "BEGIN CERTIFICATE" $TEMP_SIGN_DIR/certificate.pem; then
+            echo "::error::密钥或证书格式错误！需包含PEM标记行"
             exit 1
           fi
-          # 写入证书
-          echo "${{ secrets.CERTIFICATE_PEM }}" > $TEMP_SIGN_DIR/certificate.pem
-          # 强制设置权限
+          # 强制权限设置
           chmod 700 $TEMP_SIGN_DIR
           chmod 600 $TEMP_SIGN_DIR/*.pem
 
-      # 3. 深度调试输出
+      # 3. 调试输出（关键信息脱敏）
       - name: Debug Key Files
         if: always()
         run: |
-          echo "===== 私钥完整性验证 ====="
-          head -n 3 $TEMP_SIGN_DIR/private.pem
-          echo "... [内容已截断] ..."
-          tail -n 3 $TEMP_SIGN_DIR/private.pem
-          echo "文件大小: $(wc -c < $TEMP_SIGN_DIR/private.pem)字节"
-          
-          echo "\n===== OpenSSL验证 ====="
-          openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -check 2>&1 || true
-          openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -text 2>&1 | head -n 10
+          echo "===== 文件验证 ====="
+          ls -la $TEMP_SIGN_DIR/
+          echo "\n----- 私钥头尾 -----"
+          head -n 1 $TEMP_SIGN_DIR/private.pem
+          tail -n 1 $TEMP_SIGN_DIR/private.pem
+          echo "\n----- 证书头尾 -----"
+          head -n 1 $TEMP_SIGN_DIR/certificate.pem
+          tail -n 1 $TEMP_SIGN_DIR/certificate.pem
 
-      # 4. 密钥对匹配验证
+      # 4. 密钥对数学验证
       - name: Validate Key Pair
         run: |
-          # 检查私钥与证书是否匹配
-          PRIVATE_MODULUS=$(openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -modulus | openssl sha256)
-          CERT_MODULUS=$(openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -modulus | openssl sha256)
-          if [ "$PRIVATE_MODULUS" != "$CERT_MODULUS" ]; then
-            echo "::error::私钥与证书不匹配！请重新生成密钥对"
+          openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -check 2>openssl.log || (cat openssl.log; exit 1)
+          openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -text >/dev/null || exit 1
+          # 模数比对
+          if [ "$(openssl rsa -in $TEMP_SIGN_DIR/private.pem -noout -modulus | openssl sha256)" != \
+               "$(openssl x509 -in $TEMP_SIGN_DIR/certificate.pem -noout -modulus | openssl sha256)" ]; then
+            echo "::error::密钥与证书不匹配！需重新生成密钥对"
             exit 1
           fi
-          echo "✅ 密钥对验证通过"
 
       # 5. 构建与上传
       - name: Build RPK
         run: |
           ./node_modules/.bin/aiot build --sign
-          mv dist/*.rpk ./release-${{ github.ref_name }}.rpk
+          mv dist/*.rpk ./OK_School_Life-${{ github.ref_name }}.rpk
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: signed-rpk
-          path: ./release-*.rpk
+          path: ./OK_School_Life-*.rpk
           retention-days: 3
