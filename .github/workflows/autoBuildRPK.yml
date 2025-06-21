@@ -105,8 +105,9 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/releases/latest | \
             jq -r '.tag_name // empty')
           
-          # 生成精确格式的日志（已移除重复标题）
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          # 生成精确格式的日志（标题与内容分离处理）
+          echo "CHANGELOG_TITLE=## 📝 更新日志 ${PREV_RELEASE:-初始版本} → ${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "CHANGELOG_BODY<<EOF" >> $GITHUB_ENV
           git log --pretty=format:"- **%s**%n  贡献者：%an <%ae>%n  提交时间：%ad%n  %b" \
             --date=format:"%Y-%m-%d %H:%M:%S" \
             ${PREV_RELEASE:+$PREV_RELEASE..}${{ github.ref_name }} | \
@@ -140,8 +141,8 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: 🎉 Release ${{ github.ref_name }}
           body: |
-            ## 📝 更新日志 ${PREV_RELEASE:-初始版本} → ${{ github.ref_name }}
-            ${{ env.CHANGELOG }}
+            ${{ env.CHANGELOG_TITLE }}
+            ${{ env.CHANGELOG_BODY }}
 
             ## 🛠️ 构建信息
             - 🕒 构建时间: ${{ steps.meta.outputs.time }} (UTC+8)
