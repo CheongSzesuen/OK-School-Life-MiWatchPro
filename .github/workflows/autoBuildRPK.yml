@@ -22,11 +22,18 @@ jobs:
       - name: Install dependencies
         run: |
           npm install
-          npm install @aiot-toolkit/aiotpack@2.0.3 --save-dev  # 作为dev依赖安装
+          # 从本地缓存安装 aiot-toolkit（需提前缓存）
+          if [ -f "node_modules/@aiot-toolkit/aiotpack/package.json" ]; then
+            echo "Using locally cached aiot-toolkit"
+          else
+            echo "::error::aiot-toolkit not found. Please commit node_modules/@aiot-toolkit to your repo"
+            exit 1
+          fi
 
-      - name: Build RPK (使用本地安装的工具链)
+      - name: Build RPK
         run: |
-          npx aiotpack build --release
+          # 使用项目本地安装的工具链
+          ./node_modules/.bin/aiotpack build --release
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Generate changelog
