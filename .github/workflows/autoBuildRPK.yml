@@ -8,14 +8,13 @@ jobs:
   build-rpk:
     runs-on: ubuntu-latest
     env:
-      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife  # 修复路径拼写错误[citation:用户消息]
+      TEMP_PROJECT_PATH: ${{ github.workspace }}/.temp_OKSchoolLife
     steps:
       - uses: actions/checkout@v4
 
       - name: Restore Signing Files
         run: |
           mkdir -p .temp_OKSchoolLife/sign/
-          # 使用多行文本写入，避免echo截断PEM格式[citation:用户消息][2](@ref)
           cat << 'EOF' > .temp_OKSchoolLife/sign/private.pem
           ${{ secrets.PRIVATE_PEM }}
           EOF
@@ -26,8 +25,6 @@ jobs:
 
       - name: Verify PEM Files
         run: |
-          # 检查文件内容和权限[citation:用户消息]
-          ls -la .temp_OKSchoolLife/sign/
           openssl rsa -in .temp_OKSchoolLife/sign/private.pem -noout -check
           openssl x509 -in .temp_OKSchoolLife/sign/certificate.pem -noout -text
 
@@ -37,7 +34,8 @@ jobs:
           mv dist/*.rpk ./OK_School_Life-MiBand9Pro-${{ github.ref_name }}.rpk
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # 关键修复点[6,7](@ref)
         with:
           name: signed-rpk
           path: ./OK_School_Life-MiBand9Pro-*.rpk
+          overwrite: true  # 避免同名冲突[6](@ref)
