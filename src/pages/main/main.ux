@@ -2,15 +2,16 @@
   <div class="container">
     <div class="spacer"></div>
     <div class="header">
-      <input type="button" class="back-button" value="<" @click="routeBack" />
+      <div class="back-btn" onclick="backToWelcome">
+        <text class="back-icon">←</text>
+      </div>
     </div>
     <div class="main-area">
       <text class="question" if="{{currentQuestion}}">{{ currentQuestion }}</text>
       <div class="buttons-container">
         <div class="buttons" if="{{showOptions}}">
           <block for="{{options}}">
-            <div class="btn {{btnPressedIdx === $idx ? 'btn-pressed' : ''}}" onTouchStart="onBtnTouchStart($idx)"
-              onTouchEnd="onBtnTouchEnd" onClick="onOptionClick($item.key)">
+            <div class="btn" onClick="onOptionClick($item.key)">
               <text class="btn-text">{{ $item.text }}</text>
             </div>
           </block>
@@ -20,8 +21,7 @@
       <div class="result-area" if="{{showResult}}">
         <text class="result">{{ resultText }}</text>
         <text class="achievement" if="{{achievementText}}">{{ achievementText }}</text>
-        <div class="btn {{btnPressedIdx === -2 ? 'btn-pressed' : ''}}" onTouchStart="onBtnTouchStart(-2)"
-          onTouchEnd="onBtnTouchEnd" onClick="onContinue">
+        <div class="btn" onClick="onContinue">
           <text class="btn-text">继续</text>
         </div>
       </div>
@@ -45,23 +45,19 @@ export default {
     achievementText: "",
     showOptions: true,
     showResult: false,
-    eventsData: {}, // 初始化为空对象
+    eventsData: {},
     groupKey: "",
     eventIdx: 0,
     usedRandomEvents: [],
     stage: "choose_school",
     currentEvent: null,
-    currentRandomIdx: -1,
-    btnPressedIdx: -1,
-    activeBtnIndex: -1
+    currentRandomIdx: -1
   },
 
   onInit() {
     this.stage = "choose_school"
     this.usedRandomEvents = []
     this.eventIdx = 0
-
-    // 直接使用导入的JSON数据
     this.eventsData = eventsData
     this.showChooseSchool()
   },
@@ -82,8 +78,7 @@ export default {
   },
 
   onOptionClick(key) {
-    if (!key || this.btnPressedIdx === key) return
-    this.btnPressedIdx = key
+    if (!key) return
 
     if (this.stage === "choose_school") {
       const groupMap = {1: "group_1", 2: "group_2", 3: "group_3"}
@@ -96,10 +91,6 @@ export default {
     } else if (this.stage === "random_event") {
       this.handleRandomChoice(key)
     }
-
-    setTimeout(() => {
-      this.btnPressedIdx = -1
-    }, 300)
   },
 
   showFixedEvent() {
@@ -118,8 +109,6 @@ export default {
       }))
       this.showOptions = true
       this.showResult = false
-      this.resultText = ""
-      this.achievementText = ""
     } else {
       this.stage = "random_event"
       this.showRandomEvent()
@@ -134,12 +123,11 @@ export default {
 
     if (event.achievements && event.achievements[key]) {
       this.achievementText = "获得成就：" + event.achievements[key]
-    } else {
-      this.achievementText = ""
     }
 
     this.showOptions = false
     this.showResult = true
+
     if (event.end_game_choices && event.end_game_choices.includes(key)) {
       this.stage = "end"
     }
@@ -147,9 +135,7 @@ export default {
 
   onContinue() {
     if (this.stage === "end") {
-      router.replace({
-        uri: "pages/welcome"
-      })
+      this.routeBack()
     } else if (this.stage === "school_fixed") {
       this.eventIdx += 1
       this.showFixedEvent()
@@ -165,7 +151,6 @@ export default {
     if (available.length === 0) {
       this.currentQuestion = ""
       this.resultText = "所有事件已完成！"
-      this.achievementText = ""
       this.showOptions = false
       this.showResult = true
       this.stage = "end"
@@ -183,8 +168,6 @@ export default {
     }))
     this.showOptions = true
     this.showResult = false
-    this.resultText = ""
-    this.achievementText = ""
   },
 
   handleRandomChoice(key) {
@@ -216,8 +199,6 @@ export default {
 
     if (event.achievements && event.achievements[key]) {
       this.achievementText = "获得成就：" + event.achievements[key]
-    } else {
-      this.achievementText = ""
     }
 
     this.showOptions = false
@@ -229,15 +210,18 @@ export default {
     }
   },
 
-  onDestroy() {
-    // 清理资源
-    this.btnPressedIdx = -1
-    this.currentEvent = null
+  backToWelcome() {
+    this.routeBack()
   },
+
   routeBack() {
     router.replace({
       uri: "pages/welcome"
     })
+  },
+
+  onDestroy() {
+    this.currentEvent = null
   }
 }
 </script>
