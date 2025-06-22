@@ -12,18 +12,18 @@
         </div>
       </div>
     </div>
-    
+
     <div class="section">
       <text class="section-title">贡献者</text>
-      
-        <div class="contributors-grid">
-          <div class="contributor-card" for="contributor in contributors">
-            <text class="contributor-name">{{contributor}}</text>
-          </div>
+
+      <div class="contributors-grid">
+        <div class="contributor-card" for="contributor in contributors">
+          <text class="contributor-name">{{contributor}}</text>
         </div>
+      </div>
       </marquee>
     </div>
-    
+
     <div class="footer">
       <input class="enter-btn" type="button" value="进入游戏" onclick="enterGame" />
     </div>
@@ -49,87 +49,89 @@ export default {
 </script>
 
 <style>
-  .container {
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    background-color: #000000;
-    padding: 30px 20px;
-  }
+.container {
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: #000000;
+  padding: 30px 20px;
+}
 
-  .section {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #1A1A1A;
-    border-radius: 15px;
-  }
+.section {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #1A1A1A;
+  border-radius: 15px;
+}
 
-  .section-title {
-    font-size: 32px;
-    color: #4FC3F7;
-    font-weight: bold;
-    margin-bottom: 20px;
-    align-self: flex-start; 
-  }
+.section-title {
+  font-size: 32px;
+  color: #4FC3F7;
+  font-weight: bold;
+  margin-bottom: 20px;
+  align-self: flex-start;
+}
 
-  .author-container {
-    flex-direction: row;
-    justify-content: space-around;
-  }
+.author-container {
+  flex-direction: row;
+  justify-content: space-around;
+}
 
-  .author-card {
-    width: 45%;
-    padding: 25px 10px;
-    background-color: #1E3C72;
-    border-radius: 12px;
-    align-items: center;
-  }
+.author-card {
+  width: 45%;
+  padding: 25px 10px;
+  background-color: #1E3C72;
+  border-radius: 12px;
+  align-items: center;
+}
 
-  .author-name {
-    font-size: 28px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.author-name {
+  font-size: 28px;
+  color: #FFFFFF;
+  font-weight: bold;
+}
 
-  /* 贡献者滚动区域 */
-  .contributors-marquee {
-    height: 300px; /* 固定高度实现滚动 */
-  }
+/* 贡献者滚动区域 */
+.contributors-marquee {
+  height: 300px;
+  /* 固定高度实现滚动 */
+}
 
-  .contributors-grid {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
-  }
+.contributors-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
 
-  .contributor-card {
-    width: 30%; /* 三列布局 */
-    padding: 15px 5px;
-    background-color: #283250;
-    border-radius: 10px;
-    margin-bottom: 15px;
-    align-items: center;
-  }
+.contributor-card {
+  width: 30%;
+  /* 三列布局 */
+  padding: 15px 5px;
+  background-color: #283250;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  align-items: center;
+}
 
-  .contributor-name {
-    font-size: 24px;
-    color: #E0E0E0;
-    text-align: center;
-  }
+.contributor-name {
+  font-size: 24px;
+  color: #E0E0E0;
+  text-align: center;
+}
 
-  .footer {
-    width: 100%;
-    padding: 40px 0;
-    align-items: center;
-  }
+.footer {
+  width: 100%;
+  padding: 40px 0;
+  align-items: center;
+}
 
-  .enter-btn {
-    width: 80%;
-    height: 80px;
-    border-radius: 40px;
-    background-color: #09BA07;
-    color: #FFFFFF;
-    font-size: 32px;
-    font-weight: bold;
-  }
+.enter-btn {
+  width: 80%;
+  height: 80px;
+  border-radius: 40px;
+  background-color: #09BA07;
+  color: #FFFFFF;
+  font-size: 32px;
+  font-weight: bold;
+}
 </style>

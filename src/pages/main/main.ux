@@ -1,16 +1,21 @@
 <template>
   <div class="container">
     <div class="spacer"></div>
+    <div class="header">
+      <input type="button" class="back-button" value="<" @click="routeBack" />
+    </div>
     <div class="main-area">
       <text class="question" if="{{currentQuestion}}">{{ currentQuestion }}</text>
-      <div class="buttons" if="{{showOptions}}">
-        <block for="{{options}}">
-          <div class="btn {{btnPressedIdx === $idx ? 'btn-pressed' : ''}}" onTouchStart="onBtnTouchStart($idx)"
-            onTouchEnd="onBtnTouchEnd" onClick="onOptionClick($item.key)">
-            <text class="btn-text">{{ $item.text }}</text>
-          </div>
-        </block>
-        <text if="!options || options.length === 0" class="error-hint">暂无有效选项</text>
+      <div class="buttons-container">
+        <div class="buttons" if="{{showOptions}}">
+          <block for="{{options}}">
+            <div class="btn {{btnPressedIdx === $idx ? 'btn-pressed' : ''}}" onTouchStart="onBtnTouchStart($idx)"
+              onTouchEnd="onBtnTouchEnd" onClick="onOptionClick($item.key)">
+              <text class="btn-text">{{ $item.text }}</text>
+            </div>
+          </block>
+          <text if="!options || options.length === 0" class="error-hint">暂无有效选项</text>
+        </div>
       </div>
       <div class="result-area" if="{{showResult}}">
         <text class="result">{{ resultText }}</text>
@@ -29,8 +34,8 @@
 
 <script>
 import router from "@system.router"
-import storage from "@system.storage"
 import eventsData from "../../common/data/events.json"
+
 export default {
   private: {
     questionIdx: 0,
@@ -47,7 +52,8 @@ export default {
     stage: "choose_school",
     currentEvent: null,
     currentRandomIdx: -1,
-    btnPressedIdx: -1
+    btnPressedIdx: -1,
+    activeBtnIndex: -1
   },
 
   onInit() {
@@ -59,6 +65,7 @@ export default {
     this.eventsData = eventsData
     this.showChooseSchool()
   },
+
   showChooseSchool() {
     this.stage = "choose_school"
     this.currentQuestion = "请选择你的入学学校："
@@ -75,6 +82,9 @@ export default {
   },
 
   onOptionClick(key) {
+    if (!key || this.btnPressedIdx === key) return
+    this.btnPressedIdx = key
+
     if (this.stage === "choose_school") {
       const groupMap = {1: "group_1", 2: "group_2", 3: "group_3"}
       this.groupKey = groupMap[key]
@@ -86,6 +96,10 @@ export default {
     } else if (this.stage === "random_event") {
       this.handleRandomChoice(key)
     }
+
+    setTimeout(() => {
+      this.btnPressedIdx = -1
+    }, 300)
   },
 
   showFixedEvent() {
@@ -113,10 +127,17 @@ export default {
   },
 
   handleFixedChoice(key) {
+    if (!this.currentEvent) return
+
     const event = this.currentEvent
     this.resultText = event.results[key] || ""
-    this.achievementText =
-      event.achievements && event.achievements[key] ? "获得成就：" + event.achievements[key] : ""
+
+    if (event.achievements && event.achievements[key]) {
+      this.achievementText = "获得成就：" + event.achievements[key]
+    } else {
+      this.achievementText = ""
+    }
+
     this.showOptions = false
     this.showResult = true
     if (event.end_game_choices && event.end_game_choices.includes(key)) {
@@ -167,6 +188,8 @@ export default {
   },
 
   handleRandomChoice(key) {
+    if (!this.currentEvent) return
+
     const event = this.currentEvent
     let result = ""
 
@@ -190,8 +213,13 @@ export default {
     }
 
     this.resultText = result
-    this.achievementText =
-      event.achievements && event.achievements[key] ? "获得成就：" + event.achievements[key] : ""
+
+    if (event.achievements && event.achievements[key]) {
+      this.achievementText = "获得成就：" + event.achievements[key]
+    } else {
+      this.achievementText = ""
+    }
+
     this.showOptions = false
     this.showResult = true
     this.usedRandomEvents.push(this.currentRandomIdx)
@@ -199,6 +227,17 @@ export default {
     if (event.end_game_choices && event.end_game_choices.includes(key)) {
       this.stage = "end"
     }
+  },
+
+  onDestroy() {
+    // 清理资源
+    this.btnPressedIdx = -1
+    this.currentEvent = null
+  },
+  routeBack() {
+    router.replace({
+      uri: "pages/welcome"
+    })
   }
 }
 </script>

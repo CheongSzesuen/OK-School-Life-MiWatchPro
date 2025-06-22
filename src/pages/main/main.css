@@ -6,118 +6,184 @@
     height: 100%;
     min-width: 336px;
     min-height: 480px;
-    background-color: #222;
+    background-color: #1A2E22;
     padding: 0;
     transition: transform 0.3s ease;
 }
 
 .spacer {
-    height: 12px;
+    height: 16px;
     width: 100%;
+}
+
+.header {
+    width: 90%;
+    height: 70px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+    padding-left: 5%;
+}
+
+.back-btn {
+    width: 70px;
+    height: 40px;
+    background-color: black;
+    border: 1px solid gray;
+    color: darkgray;
+    font-size: 26px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    border-radius: 8px;
+    margin-left: 0;
+}
+
+.back-icon {
+    font-size: 26px;
+    color: darkgray;
+}
+
+.btn-active {
+    background-color: #333;
+}
+
+.back-button {
+    width: 70px;
+    height: 40px;
+    position: relative;
+    top: 5px;
+    background-color: black;
+    border: 3px;
+    border-color: gray;
+    color: darkgray;
+    font-size: 26px;
 }
 
 .main-area {
     flex-direction: column;
     align-items: center;
-    width: 100%;
-    max-width: 336px;
-    border-radius: 18px;
-    padding: 0 8px 0 8px;
+    width: 90%;
+    border-radius: 20px;
     flex-grow: 1;
+    padding: 5% 5% 0 5%;
     justify-content: flex-start;
+    background-color: rgba(232, 243, 245, 0.1);
 }
 
 .question {
-    font-size: 22px;
-    color: #ffe28a;
+    font-size: 34px;
+    color: #F8F8FF;
     text-align: center;
-    margin: 16px 0 18px 0;
-    padding: 0 6px;
-    line-height: 28px;
+    margin: 30px 0 28px 0;
+    padding: 0 8%;
+    line-height: 42px;
+    font-weight: bold;
+    position: relative;
+    top: 8px;
+    word-break: break-word;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .buttons {
     flex-direction: column;
     width: 100%;
-    max-width: 300px;
-    margin-bottom: 16px;
+    max-width: 310px;
+    margin-bottom: 20px;
     align-items: center;
     justify-content: flex-start;
 }
 
+
+
 .btn {
-    width: 95%;
-    height: 48px;
-    margin-top: 15px;
-    border-radius: 15px;
-    background-color: #41b876;
-    box-shadow: 0 2px 8px 0 rgba(65, 184, 118, 0.1);
+    width: 100%;
+    min-height: 60px;
+    margin-top: 20px;
+    border-radius: 20px;
+    background-color: #53A47A;
+    box-shadow: 0 5px 15px rgba(83, 164, 122, 0.4);
     justify-content: center;
     align-items: center;
     display: flex;
-}
-
-.btn-pressed {
-    background-color: #239473;
+    border: 1.5px solid #69BA83;
+    padding: 10px 0;
+    overflow: hidden;
 }
 
 .btn-text {
-    color: #fff;
-    font-size: 18px;
+    font-size: 28px;
+    color: #FFF;
     font-weight: bold;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+    width: 95%;
     text-align: center;
-    width: 100%;
+    word-break: break-word;
+    padding: 5px 0;
+}
+
+.btn-pressed {
+    background-color: #3A8B63;
 }
 
 .error-hint {
-    color: #ff5e5e;
+    color: #FF7E7E;
     text-align: center;
-    margin-top: 10px;
-    font-size: 15px;
-    letter-spacing: 1px;
+    margin-top: 16px;
+    font-size: 18px;
+    letter-spacing: 1.2px;
 }
 
 .result-area {
-    margin-top: 18px;
+    margin-top: 28px;
     align-items: center;
-    width: 100%;
-    padding-bottom: 6px;
-    min-height: 80px;
+    width: 94%;
+    padding: 20px 16px;
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    background-color: rgba(109, 139, 140, 0.2);
+    border-radius: 20px;
 }
 
 .result {
-    font-size: 19px;
-    color: #fecd1a;
+    font-size: 28px;
+    color: #B4FFBA;
     text-align: center;
-    padding: 0 10px;
-    margin-bottom: 9px;
-    line-height: 26px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+    line-height: 36px;
     word-break: break-all;
 }
 
 .achievement {
-    font-size: 17px;
-    color: #15e4b8;
+    font-size: 26px;
+    color: #C8FFE8;
     text-align: center;
-    margin-bottom: 8px;
-    line-height: 22px;
+    margin: 16px 0;
+    padding: 12px 16px;
+    line-height: 32px;
+    font-weight: 500;
+    background-color: rgba(200, 255, 232, 0.1);
+    border-radius: 16px;
+    width: 90%;
 }
 
 .footer-area {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    margin-bottom: 6px;
-    margin-top: 10px;
+    margin-bottom: 16px;
+    margin-top: 20px;
 }
 
 .footer-copyright {
-    font-size: 12px;
-    color: #444444;
+    font-size: 16px;
+    color: #FFF;
     text-align: center;
-    margin-top: 4px;
+    margin-top: 8px;
+    opacity: 0.8;
 }
