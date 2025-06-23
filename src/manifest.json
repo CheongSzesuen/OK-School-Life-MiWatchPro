@@ -1,7 +1,7 @@
 {
   "package": "fun.okschoollife.mibandpro.beta",
   "name": "Ok School Life",
-  "versionName": "0.1.2",
+  "versionName": "0.2.0",
   "versionCode": 0.1,
   "minPlatformVersion": 1000,
   "icon": "/common/assets/icon/icon-v4-final.png",
@@ -11,6 +11,9 @@
   "features": [
     {
       "name": "system.router"
+    },
+    {
+      "name": "system.storage"
     },
     {
       "name": "system.prompt"
@@ -52,14 +55,14 @@
       "pages/load": {
         "component": "load"
       },
-      "pages/developer": {
-        "component": "developer"
-      },
-      "pages/welcome": {
-        "component": "welcome"
+      "pages/index": {
+        "component": "index"
       },
       "pages/main": {
         "component": "main"
+      },
+      "pages/developer": {
+        "component": "developer"
       },
       "pages/achievement": {
         "component": "achievement"

@@ -1,66 +1,185 @@
 <template>
-  <div class="achievement-page">
+  <div class="container">
+    <!-- 头部 -->
     <div class="header">
-      <div class="back-btn {{activeBtnIndex === 0 ? 'btn-active' : ''}}" onclick="backToWelcome"
-        ontouchstart="setBtnActive(0)" ontouchend="setBtnInactive">
+      <div class="back-btn" onclick="routeBack">
         <text class="back-icon">←</text>
       </div>
-      <input type="button" class="back-button" value="<" @click="routeBack" />
       <text class="title">成就</text>
+      <div class="clear-btn" onclick="clearAchievements">
+        <text class="clear-text">清除</text>
+      </div>
     </div>
 
-    <div class="content">
-      <div class="achievements-section" if="{{achievements.length > 0}}">
-        <div class="achievements-list">
-          <div class="achievement-item" for="(achievement, index) in achievements">
-            <div class="achievement-content">
-              <div class="text-container">
-                <text class="achievement-text">{{ achievement }}</text>
-              </div>
-            </div>
+    <div class="spacer"></div>
+
+    <!-- 主内容区 -->
+    <div class="main-area">
+      <!-- 加载状态 -->
+      <div class="loading-state" if="{{isLoading}}">
+        <text class="loading-text">加载中...</text>
+      </div>
+
+      <!-- 成就列表 -->
+      <div class="achievement-content" if="{{!isLoading}}">
+        <div class="achievement-list">
+          <div class="achievement-item" for="{{achievements}}">
+            <text class="achievement-text">{{ $item }}</text>
           </div>
         </div>
-      </div>
 
-      <div class="empty-state" if="{{achievements.length === 0}}">
-        <text class="empty-text">暂无成就</text>
+        <div class="empty-state" if="{{achievements.length === 0}}">
+          <text class="empty-text">暂无成就</text>
+        </div>
       </div>
     </div>
 
-    <div class="footer">
-      <div class="{{activeBtnIndex === 0 ? 'btn-active' : ''}}">
-        <text class="btn-text">清空成就</text>
-      </div>
+    <div class="footer-area">
+      <text class="footer-copyright">© 2025 WaiJade & StillAlive</text>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import storage from "@system.storage"
 import prompt from "@system.prompt"
+import eventsData from "../../common/data/events.json"
 
 export default {
   private: {
-    achievements: ["1", "2"],
-    activeBtnIndex: -1
+    achievements: [],
+    isLoading: true,
+    achievementMap: {}
   },
 
-  routeBack() {
-    router.replace({
-      uri: "pages/welcome"
+  onInit() {
+    console.log("成就页面初始化开始")
+    this.initAchievementMap()
+    this.loadAchievements()
+  },
+
+  initAchievementMap() {
+    const map = {}
+
+    // 处理固定事件
+    for (const groupKey in eventsData.events) {
+      const group = eventsData.events[groupKey]
+      group.forEach((event) => {
+        if (event.achievements) {
+          for (const choiceKey in event.achievements) {
+            const key = `${event.id}_${choiceKey}`
+            const achievement = event.achievements[choiceKey]
+            map[key] = Array.isArray(achievement) ? achievement.join("、") : achievement
+          }
+        }
+      })
+    }
+
+    // 处理随机事件
+    eventsData.random_events.forEach((event) => {
+      if (event.achievements) {
+        for (const choiceKey in event.achievements) {
+          const key = `${event.id}_${choiceKey}`
+          const achievement = event.achievements[choiceKey]
+          map[key] = Array.isArray(achievement) ? achievement.join("、") : achievement
+        }
+      }
+    })
+
+    console.log("成就映射表初始化完成", map)
+    this.achievementMap = map
+  },
+
+  loadAchievements() {
+    this.isLoading = true
+
+    storage.get({
+      key: "achievements",
+      success: (data) => {
+        console.log("从存储加载的原始成就数据:", data)
+
+        if (data) {
+          try {
+            const achievedKeys = JSON.parse(data)
+            this.processAchievements(achievedKeys)
+          } catch (e) {
+            console.error("成就数据解析失败", e)
+            prompt.showToast({message: "成就数据解析失败"})
+            this.achievements = []
+          }
+        } else {
+          this.achievements = []
+        }
+
+        this.isLoading = false
+      },
+      fail: (err, code) => {
+        console.error(`成就加载失败，错误码：${code}`)
+        prompt.showToast({message: "加载成就失败"})
+        this.achievements = []
+        this.isLoading = false
+      }
     })
   },
 
-  clearAchievements() {
-    prompt.showDialog({
-      title: "确认清空",
-      message: "确定要清空所有成就吗？",
-      buttons: [{text: "取消"}, {text: "确定", color: "#FF3B30"}],
-      success: (res) => {
-        if (res.index === 1) {
-          this.achievements = []
-          prompt.showToast({message: "成就已清空"})
+  processAchievements(achievedKeys) {
+    console.log("原始成就keys:", achievedKeys)
+    console.log("成就映射表:", this.achievementMap)
+
+    const processed = []
+    achievedKeys.forEach((key) => {
+      console.log(`处理key: ${key}`)
+      let name = this.achievementMap[key]
+      console.log(`直接匹配结果: ${name}`)
+
+      if (!name && key.includes("_")) {
+        const parts = key.split("_")
+        if (parts.length >= 3) {
+          const baseKey = `${parts[0]}_${parts[1]}`
+          console.log(`尝试基础key: ${baseKey}`)
+          name = this.achievementMap[baseKey]
+          console.log(`基础匹配结果: ${name}`)
         }
+      }
+
+      processed.push(name || key)
+    })
+
+    console.log("最终成就列表:", processed)
+    this.achievements = processed
+  },
+
+  routeBack() {
+    router.back()
+  },
+
+  clearAchievements() {
+    // 直接清除成就数据，不再显示确认对话框
+    storage.set({
+      key: "achievements",
+      value: JSON.stringify([]),
+      success: () => {
+        this.achievements = []
+        prompt.showToast({
+          message: "成就已清除",
+          backgroundColor: "#53A47A",
+          textColor: "#E8F3F5",
+          borderRadius: 12,
+          duration: 2000
+        })
+        // 重新加载空列表
+        this.loadAchievements()
+      },
+      fail: (err, code) => {
+        console.error(`清除成就失败，错误码：${code}`)
+        prompt.showToast({
+          message: "清除失败",
+          backgroundColor: "#90CA97",
+          textColor: "#3A3F7C",
+          borderRadius: 12,
+          duration: 2000
+        })
       }
     })
   }
@@ -68,123 +187,166 @@ export default {
 </script>
 
 <style>
-.achievement-page {
+.container {
   flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   width: 100%;
   height: 100%;
-  background-color: #0f0f15;
-  padding: 15px;
+  min-width: 336px;
+  min-height: 480px;
+  background-color: #1a2e22;
+  padding: 0;
+}
+
+.spacer {
+  height: 20px;
+  width: 100%;
+  background-color: transparent;
 }
 
 .header {
-  width: 100%;
-  height: 70px;
+  width: 84%;
+  height: 80px;
   flex-direction: row;
   align-items: center;
-  margin-bottom: 15px;
-  position: relative;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 0 8%;
 }
 
-.back-button {
-  width: 70px;
-  height: 40px;
-  position: relative;
-  top: 5px;
-  background-color: black;
-  border: 3px;
-  border-color: gray;
-  color: darkgray;
-  font-size: 26px;
+.back-btn {
+  width: 80px;
+  height: 45px;
+  background-color: #53a47a;
+  border: 2px solid #b5dbc7;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  border-radius: 16px;
+  margin-left: 0;
+}
+
+.back-icon {
+  font-size: 28px;
+  color: #e8f3f5;
 }
 
 .title {
   font-size: 36px;
+  color: #bfe1d8;
   font-weight: bold;
-  color: #41b876;
-  text-align: center;
-  width: 100%;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.content {
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
+.clear-btn {
+  width: 100px;
+  height: 45px;
+  background-color: #76bf73;
+  border: none;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  border-radius: 16px;
+  box-shadow: 0 4px 8px rgba(118, 191, 115, 0.4);
 }
 
-.achievements-section {
+.clear-text {
+  font-size: 26px;
+  color: #3a3f7c;
+  font-weight: 500;
+}
+
+.main-area {
+  flex-direction: column;
+  align-items: center;
+  width: 88%;
+  border-radius: 24px;
+  flex-grow: 1;
+  padding: 5% 6%;
+  margin-bottom: 20px;
+  justify-content: flex-start;
+  background-color: rgba(232, 243, 245, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.loading-state {
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.loading-text {
+  font-size: 28px;
+  color: #acecb0;
+}
+
+.achievement-content {
+  width: 94%;
+  flex-direction: column;
+  display: flex;
+  margin-top: 10px;
+}
+
+.achievement-list {
   width: 100%;
   flex-direction: column;
-}
-
-.achievements-list {
-  width: 100%;
-  flex-direction: column;
+  display: flex;
 }
 
 .achievement-item {
   width: 100%;
-  padding: 20px 15px;
-  border-bottom-width: 1px;
-  border-bottom-color: #252530;
-}
-
-.achievement-content {
-  flex-direction: row;
+  min-height: 70px;
+  margin-top: 16px;
+  border-radius: 24px;
+  background-color: #41b876;
+  justify-content: center;
   align-items: center;
-}
-
-.text-container {
-  flex: 1;
-  overflow: hidden;
+  display: flex;
+  padding: 14px 0;
+  box-shadow: 0 4px 12px rgba(105, 186, 131, 0.3);
+  border: 1px solid #69ba83;
 }
 
 .achievement-text {
-  font-size: 26px;
-  color: #e0e0e0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 28px;
+  color: #ffffff;
+  font-weight: 500;
+  text-align: center;
+  padding: 0 18px;
+  line-height: 36px;
+  width: 90%;
 }
 
 .empty-state {
-  flex: 1;
+  width: 100%;
+  height: 200px;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
-  padding: 40px 0;
+  display: flex;
 }
 
 .empty-text {
   font-size: 28px;
-  color: #888899;
+  color: #b5dbc7;
+  opacity: 0.8;
 }
 
-.footer {
-  position: fixed;
-  bottom: 20px;
-  width: 100%;
-  padding: 0 20px;
+.footer-area {
+  flex-direction: column;
   align-items: center;
-}
-
-.clear-btn {
   width: 100%;
-  height: 60px;
-  background-color: #2a2a3a;
-  border-radius: 8px;
-  border: 1px solid #3a3a4a;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.1s;
+  margin-bottom: 24px;
+  margin-top: 24px;
 }
 
-.clear-btn.btn-active {
-  background-color: #3a3a4a;
-}
-
-.btn-text {
-  font-size: 28px;
-  color: #ff5555;
-  font-weight: bold;
+.footer-copyright {
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
+  margin-top: 16px;
+  opacity: 0.8;
 }
 </style>

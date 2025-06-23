@@ -43,7 +43,7 @@ export default {
   },
   
   enterGame() {
-    router.replace({ uri: 'pages/welcome' })
+    router.replace({ uri: 'pages/index' })
   }
 }
 </script>

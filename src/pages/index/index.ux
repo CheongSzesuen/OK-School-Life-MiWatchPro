@@ -1,0 +1,192 @@
+<template>
+  <div class="container">
+    <image class="logo" src="../../common/assets/icon/icon-v4.png"></image>
+
+    <div class="header">
+      <text class="title">OK School Life</text>
+      <text class="version">beta {{ version }}</text>
+    </div>
+
+    <div class="buttons">
+      <div class="btn" onclick="startGame">
+        <text class="btn-text">开始游戏</text>
+      </div>
+      <div class="btn" onclick="showAchievements">
+        <text class="btn-text">查看成就</text>
+      </div>
+
+      <!-- <div class="btn" onclick="showDeveloper"> 
+        <text class="btn-text">开发者</text>
+      </div>
+
+      <div class="btn" onclick="showSettings">
+        <text class="btn-text">设置</text>
+      </div>-->
+      <div class="btn" onclick="exitGame">
+        <text class="btn-text">退出游戏</text>
+      </div>
+    </div>
+
+    <div class="footer-area">
+      <text class="footer-copyright">© 2025 WaiJade & StillAlive</text>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from "@system.router"
+import app from "@system.app"
+import prompt from "@system.prompt"
+import storage from "@system.storage"
+
+const appInfo = app.getInfo()
+const version = appInfo.versionName
+
+export default {
+  private: {
+    version: version
+  },
+
+  onInit() {
+    console.log("首页初始化完成")
+  },
+
+  startGame() {
+    router.push({
+      uri: "pages/main",
+      params: {newGame: true, version: this.version}
+    })
+  },
+
+  showAchievements() {
+    router.push({
+      uri: "/pages/achievement",
+      params: {
+        // 只保留必要的调试信息
+        source: "index",
+        timestamp: Date.now()
+      }
+    })
+  },
+
+  showDeveloper() {
+    router.push({
+      uri: "pages/developer",
+      params: {version: this.version}
+    })
+  },
+
+  showSettings() {
+    router.push({
+      uri: "pages/settings",
+      params: {version: this.version}
+    })
+  },
+
+  exitGame() {
+    app.terminate()
+  }
+}
+</script>
+
+<style>
+.container {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  min-width: 336px;
+  min-height: 480px;
+  background-color: #1a2e22;
+  padding: 0;
+}
+
+.logo {
+  width: 140px;
+  height: 140px;
+  border-radius: 30px;
+  margin-top: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 2px solid #69ba83;
+}
+
+.header {
+  flex-direction: column;
+  align-items: center;
+  margin: 15px 0 10px;
+  width: 90%;
+}
+
+.title {
+  font-size: 38px;
+  color: #f8f8ff;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.version {
+  font-size: 20px;
+  color: #b4ffba;
+  text-align: center;
+  letter-spacing: 1.2px;
+  margin-bottom: 5px;
+}
+
+.buttons {
+  flex-direction: column;
+  width: 94%;
+  /* 从90%调整为94% */
+  max-width: 340px;
+  /* 从310px调整为340px */
+  margin-top: 10px;
+  margin-bottom: 20px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.btn {
+  width: 100%;
+  min-height: 70px;
+  margin-top: 25px;
+  border-radius: 20px;
+  background-color: #41b876;
+  box-shadow: 0 5px 15px rgba(83, 164, 122, 0.4);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  padding: 10px 0;
+  overflow: hidden;
+}
+
+.btn-text {
+  font-size: 28px;
+  color: #fff;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  width: 95%;
+  text-align: center;
+  word-break: break-word;
+  padding: 5px 0;
+}
+
+.footer-area {
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  margin-top: auto;
+  background-color: rgba(26, 46, 34, 0.9);
+}
+
+.footer-copyright {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  margin: 0;
+  padding: 5px 0;
+}
+</style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="WelcomePage">
+  <div class="indexPage">
     <image class="icon" src="../../common/assets/icon/icon-v4.png"></image>
 
     <div class="game-name-container">
@@ -17,7 +17,7 @@ export default {
   onInit() {
     setTimeout(() => {
       router.replace({
-        uri: "pages/welcome"
+        uri: "pages/index"
       })
     }, 2000)
   },
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <style>
-.WelcomePage {
+.indexPage {
   flex-direction: column;
   justify-content: center;
   align-items: center;

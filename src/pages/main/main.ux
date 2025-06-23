@@ -2,7 +2,7 @@
   <div class="container">
     <div class="spacer"></div>
     <div class="header">
-      <div class="back-btn" onclick="backToWelcome">
+      <div class="back-btn" onclick="backToindex">
         <text class="back-icon">←</text>
       </div>
     </div>
@@ -27,13 +27,14 @@
       </div>
     </div>
     <div class="footer-area">
-      <text class="footer-copyright">© 2024 WaiJade & StillAlive</text>
+      <text class="footer-copyright">© 2025 WaiJade & StillAlive</text>
     </div>
   </div>
 </template>
 
 <script>
 import router from "@system.router"
+import storage from "@system.storage"
 import eventsData from "../../common/data/events.json"
 
 export default {
@@ -51,7 +52,10 @@ export default {
     usedRandomEvents: [],
     stage: "choose_school",
     currentEvent: null,
-    currentRandomIdx: -1
+    currentRandomIdx: -1,
+    school: "",
+    achievedList: [],
+    achievementMap: {}
   },
 
   onInit() {
@@ -59,16 +63,72 @@ export default {
     this.usedRandomEvents = []
     this.eventIdx = 0
     this.eventsData = eventsData
+    this.loadAchievements()
     this.showChooseSchool()
+  },
+
+  loadAchievements() {
+    storage.get({
+      key: "achievements",
+      success: (data) => {
+        if (data) {
+          try {
+            this.achievedList = JSON.parse(data) || []
+            this.achievementMap = this.achievedList.reduce((map, key) => {
+              map[key] = true
+              return map
+            }, {})
+            console.log("加载的成就数据:", this.achievedList)
+          } catch (e) {
+            console.error("成就数据解析失败", e)
+          }
+        }
+      },
+      fail: (err, code) => {
+        console.error(`成就加载失败，错误码：${code}`)
+      }
+    })
+  },
+
+  saveAchievement(eventId, choiceKey) {
+    // 统一成就key格式：固定事件"event_X_Y_Z"，随机事件"random_X_Y"
+    const isRandom = eventId.startsWith("random")
+    const achievementKey = isRandom
+      ? `random_${eventId.split("_")[1]}_${choiceKey}`
+      : `event_${eventId.split("_")[1]}_${eventId.split("_")[2]}_${choiceKey}`
+
+    if (this.achievementMap[achievementKey]) {
+      console.log("成就已存在:", achievementKey)
+      return false
+    }
+
+    this.achievedList.push(achievementKey)
+    this.achievementMap[achievementKey] = true
+
+    storage.set({
+      key: "achievements",
+      value: JSON.stringify(this.achievedList),
+      success: () => {
+        console.log("成就保存成功:", achievementKey)
+        // 触发成就页面更新
+        this.$app.$def.achievementUpdated = true
+      },
+      fail: (err, code) => {
+        console.error(`成就保存失败，错误码：${code}`)
+        this.achievedList.pop()
+        delete this.achievementMap[achievementKey]
+      }
+    })
+    return true
   },
 
   showChooseSchool() {
     this.stage = "choose_school"
     this.currentQuestion = "请选择你的入学学校："
     this.options = [
-      {key: "1", text: "羊县中学"},
-      {key: "2", text: "闪西省汗忠中学"},
-      {key: "3", text: "汗忠市龙港高级中学"}
+      {key: "1", text: "羊县中学", group: "group_1"},
+      {key: "2", text: "闪西省汗忠中学", group: "group_2"},
+      {key: "3", text: "汗忠市龙港高级中学", group: "group_3"}
     ]
     this.showOptions = true
     this.showResult = false
@@ -81,12 +141,13 @@ export default {
     if (!key) return
 
     if (this.stage === "choose_school") {
-      const groupMap = {1: "group_1", 2: "group_2", 3: "group_3"}
-      this.groupKey = groupMap[key]
+      const selectedOption = this.options.find((opt) => opt.key === key)
+      this.school = selectedOption.text
+      this.groupKey = selectedOption.group // 使用与学校绑定的固定事件组
       this.eventIdx = 0
-      this.stage = "school_fixed"
+      this.stage = "fixed_event"
       this.showFixedEvent()
-    } else if (this.stage === "school_fixed") {
+    } else if (this.stage === "fixed_event") {
       this.handleFixedChoice(key)
     } else if (this.stage === "random_event") {
       this.handleRandomChoice(key)
@@ -94,21 +155,24 @@ export default {
   },
 
   showFixedEvent() {
-    const group =
-      this.eventsData.events && this.eventsData.events.fixed_events
-        ? this.eventsData.events.fixed_events[this.groupKey] || []
-        : []
+    const group = this.eventsData.events[this.groupKey] || []
 
     if (this.eventIdx < group.length) {
       const event = group[this.eventIdx]
       this.currentEvent = event
       this.currentQuestion = event.question
-      this.options = Object.keys(event.choices).map((k) => ({
-        key: k,
-        text: event.choices[k]
-      }))
+
+      this.options = []
+      for (const choiceKey in event.choices) {
+        this.options.push({
+          key: choiceKey,
+          text: event.choices[choiceKey]
+        })
+      }
+
       this.showOptions = true
       this.showResult = false
+      this.achievementText = ""
     } else {
       this.stage = "random_event"
       this.showRandomEvent()
@@ -119,10 +183,33 @@ export default {
     if (!this.currentEvent) return
 
     const event = this.currentEvent
-    this.resultText = event.results[key] || ""
+    let result = event.results[key] || ""
+
+    if (Array.isArray(result)) {
+      const rand = Math.random()
+      let cumulativeProb = 0
+      for (const item of result) {
+        cumulativeProb += item.prob || 0
+        if (rand <= cumulativeProb) {
+          result = item.text
+          if (item.end_game) {
+            this.stage = "end"
+          }
+          break
+        }
+      }
+    }
+
+    this.resultText = result
 
     if (event.achievements && event.achievements[key]) {
-      this.achievementText = "获得成就：" + event.achievements[key]
+      const achievement = event.achievements[key]
+      const isNew = this.saveAchievement(event.id, key)
+      const achievementStr = Array.isArray(achievement) ? achievement.join("、") : achievement
+
+      this.achievementText = `获得成就：${achievementStr}${isNew ? "" : " (已获得)"}`
+    } else {
+      this.achievementText = ""
     }
 
     this.showOptions = false
@@ -136,7 +223,7 @@ export default {
   onContinue() {
     if (this.stage === "end") {
       this.routeBack()
-    } else if (this.stage === "school_fixed") {
+    } else if (this.stage === "fixed_event") {
       this.eventIdx += 1
       this.showFixedEvent()
     } else if (this.stage === "random_event") {
@@ -145,8 +232,8 @@ export default {
   },
 
   showRandomEvent() {
-    const allRandom = (this.eventsData.events && this.eventsData.events.random_events) || []
-    const available = allRandom.filter((e, idx) => this.usedRandomEvents.indexOf(idx) === -1)
+    const allRandom = this.eventsData.random_events || []
+    const available = allRandom.filter((_, idx) => !this.usedRandomEvents.includes(idx))
 
     if (available.length === 0) {
       this.currentQuestion = ""
@@ -157,48 +244,56 @@ export default {
       return
     }
 
-    const idx = Math.floor(Math.random() * available.length)
-    const event = available[idx]
-    this.currentRandomIdx = this.eventsData.events.random_events.indexOf(event)
+    const randomIndex = Math.floor(Math.random() * available.length)
+    const event = available[randomIndex]
+    this.currentRandomIdx = allRandom.indexOf(event)
     this.currentEvent = event
     this.currentQuestion = event.question
-    this.options = Object.keys(event.choices).map((k) => ({
-      key: k,
-      text: event.choices[k]
-    }))
+
+    this.options = []
+    for (const choiceKey in event.choices) {
+      this.options.push({
+        key: choiceKey,
+        text: event.choices[choiceKey]
+      })
+    }
+
     this.showOptions = true
     this.showResult = false
+    this.achievementText = ""
   },
 
   handleRandomChoice(key) {
     if (!this.currentEvent) return
 
     const event = this.currentEvent
-    let result = ""
+    let result = event.results[key] || ""
 
-    if (Array.isArray(event.results[key])) {
-      let sum = 0
+    if (Array.isArray(result)) {
       const rand = Math.random()
-
-      for (const item of event.results[key]) {
-        sum += item.probability || item.prob || 0
-        if (rand < sum) {
-          result = item.text || item.rd_result || ""
+      let cumulativeProb = 0
+      for (const item of result) {
+        cumulativeProb += item.prob || 0
+        if (rand <= cumulativeProb) {
+          result = item.text
+          if (item.end_game) {
+            this.stage = "end"
+          }
           break
         }
       }
-
-      if (!result) {
-        result = event.results[key][0].text || event.results[key][0].rd_result || ""
-      }
-    } else {
-      result = event.results[key] || ""
     }
 
     this.resultText = result
 
     if (event.achievements && event.achievements[key]) {
-      this.achievementText = "获得成就：" + event.achievements[key]
+      const achievement = event.achievements[key]
+      const isNew = this.saveAchievement(event.id, key)
+      const achievementStr = Array.isArray(achievement) ? achievement.join("、") : achievement
+
+      this.achievementText = `获得成就：${achievementStr}${isNew ? "" : " (已获得)"}`
+    } else {
+      this.achievementText = ""
     }
 
     this.showOptions = false
@@ -210,16 +305,33 @@ export default {
     }
   },
 
-  backToWelcome() {
-    this.routeBack()
-  },
-
-  routeBack() {
-    router.replace({
-      uri: "pages/welcome"
+  backToindex() {
+    // 只获取成就数据
+    storage.get({
+      key: "achievements",
+      success: (data) => {
+        router.replace({
+          uri: "pages/index",
+          params: {
+            achievements: data || "[]" // 确保始终有默认值
+          }
+        })
+      },
+      fail: () => {
+        // 如果获取失败，仍然传递空数组
+        router.replace({
+          uri: "pages/index",
+          params: {
+            achievements: "[]"
+          }
+        })
+      }
     })
   },
 
+  routeBack() {
+    this.backToindex()
+  },
   onDestroy() {
     this.currentEvent = null
   }
