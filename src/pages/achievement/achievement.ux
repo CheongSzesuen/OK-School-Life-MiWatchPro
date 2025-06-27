@@ -33,6 +33,10 @@
         </div>
       </div>
     </div>
+
+    <div class="footer-area">
+      <text class="footer-copyright">© 2025 WaiJade & StillAlive</text>
+    </div>
   </div>
 </template>
 
@@ -327,6 +331,22 @@ export default {
 .empty-text {
   font-size: 28px;
   color: #b5dbc7;
+  opacity: 0.8;
+}
+
+.footer-area {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 24px;
+  margin-top: 24px;
+}
+
+.footer-copyright {
+  font-size: 16px;
+  color: #fff;
+  text-align: center;
+  margin-top: 16px;
   opacity: 0.8;
 }
 </style>
