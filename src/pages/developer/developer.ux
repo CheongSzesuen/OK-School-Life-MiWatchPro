@@ -24,9 +24,7 @@
       </marquee>
     </div>
 
-    <div class="footer">
-      <input class="enter-btn" type="button" value="进入游戏" onclick="enterGame" />
-    </div>
+
   </div>
 </template>
 
@@ -119,11 +117,6 @@ export default {
   text-align: center;
 }
 
-.footer {
-  width: 100%;
-  padding: 40px 0;
-  align-items: center;
-}
 
 .enter-btn {
   width: 80%;
