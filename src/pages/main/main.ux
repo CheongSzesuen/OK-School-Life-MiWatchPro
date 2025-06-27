@@ -26,9 +26,6 @@
         </div>
       </div>
     </div>
-    <div class="footer-area">
-      <text class="footer-copyright">© 2025 WaiJade & StillAlive</text>
-    </div>
   </div>
 </template>
 
@@ -160,7 +157,7 @@ export default {
     if (this.eventIdx < group.length) {
       const event = group[this.eventIdx]
       this.currentEvent = event
-      this.currentQuestion = event.question
+      this.currentQuestion = event.question.replace(/^>>>/, "") // 移除开头的>>>
 
       this.options = []
       for (const choiceKey in event.choices) {
@@ -248,7 +245,7 @@ export default {
     const event = available[randomIndex]
     this.currentRandomIdx = allRandom.indexOf(event)
     this.currentEvent = event
-    this.currentQuestion = event.question
+    this.currentQuestion = event.question.replace(/^>>>/, "") // 移除开头的>>>
 
     this.options = []
     for (const choiceKey in event.choices) {
