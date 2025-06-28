@@ -157,7 +157,8 @@ export default {
     if (this.eventIdx < group.length) {
       const event = group[this.eventIdx]
       this.currentEvent = event
-      this.currentQuestion = event.question
+      //在加载时预处理去除 >>>
+      this.currentQuestion = event.question.replace(/^>>>/, "")
 
       this.options = []
       for (const choiceKey in event.choices) {
@@ -245,7 +246,7 @@ export default {
     const event = available[randomIndex]
     this.currentRandomIdx = allRandom.indexOf(event)
     this.currentEvent = event
-    this.currentQuestion = event.question
+    this.currentQuestion = event.question.replace(/^>>>/, "")
 
     this.options = []
     for (const choiceKey in event.choices) {

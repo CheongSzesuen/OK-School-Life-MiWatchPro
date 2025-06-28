@@ -33,8 +33,6 @@
         </div>
       </div>
     </div>
-
-    
   </div>
 </template>
 
@@ -331,5 +329,4 @@ export default {
   color: #b5dbc7;
   opacity: 0.8;
 }
-
 </style>
